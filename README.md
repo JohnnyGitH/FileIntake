@@ -27,6 +27,7 @@ It includes user authentication via ASP.NET Core Identity and is built using Ent
 | **Frontend** | Razor Pages + Bootstrap |
 | **IDE** | Visual Studio Code |
 
+
 ---
 
 ## ⚙️ Setup Instructions
@@ -35,3 +36,4 @@ It includes user authentication via ASP.NET Core Identity and is built using Ent
    ```bash
    git clone https://github.com/JohnnyGitH/FileIntake.git
    cd FileIntake
+
