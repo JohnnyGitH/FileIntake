@@ -5,5 +5,11 @@
 <div class="text-center mt-5">
     <h1 class="display-4">Welcome to File Intake</h1>
     <p class="lead">Securely upload and analyze PDF documents with AI.</p>
-    <a class="btn btn-primary mt-3" href="/Account/Login">Login</a>
+
+    @if(!User.Identity.IsAuthenticated){
+        <a class="btn btn-primary mt-3" href="/Identity/Account/Login">Login</a>
+    } else {
+        <a class="btn btn-primary mt-3" href="/FileIntake">Go to File Uploads</a>
+    }
+    
 </div>

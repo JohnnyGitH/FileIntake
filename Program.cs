@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using FileIntake.Data;
 using System;
 using Microsoft.Extensions.Logging;
+using FileIntake.Services;
+using FileIntake.Interfaces;
 
 namespace FileIntake;
 
@@ -26,6 +28,8 @@ public class Program
         builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
         // .AddRoles<IdentityRole>() // Uncomment when I implement roles
+
+        builder.Services.AddScoped<IFileIntakeService, FileIntakeService>();
 
         // Add MVC/View Services
         builder.Services.AddControllersWithViews();

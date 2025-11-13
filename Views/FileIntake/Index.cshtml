@@ -1,0 +1,22 @@
+@model IEnumerable<FileIntake.Models.FileRecord>
+
+<h2>Recent File Uploads</h2>
+<table class="table table-striped">
+    <thread>
+        <tr>
+            <th>File Name</th>
+            <th>Uploaded</th>
+            <th>User</th>
+        </tr>
+    </thread>
+    <tbody>
+        @foreach (var file in Model)
+        {
+            <tr>
+                <td>@file.FileName</td>
+                <td>@file.UploadedAt.ToString("g")</td>
+                <td>@file.UserProfile?.FirstName</td>
+            </tr>
+        }
+    </tbody>
+</table>

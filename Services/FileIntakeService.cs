@@ -2,12 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FileIntake.Data;
+using FileIntake.Interfaces;
 using FileIntake.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace FileIntake.Services
 {
-    public class FileIntakeService
+    public class FileIntakeService : IFileIntakeService
     {
         private readonly ApplicationDbContext _context;
         public FileIntakeService(ApplicationDbContext context)
