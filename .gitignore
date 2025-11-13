@@ -11,7 +11,6 @@ obj/
 *.userosscache
 *.sln.docstates
 ScaffoldingReadMe.txt
-appsettings.Development.json
 
 # VS Code settings
 .vscode/
@@ -20,3 +19,4 @@ appsettings.Development.json
 # OS junk
 Thumbs.db
 .DS_Store
+appsettings.Development.json
