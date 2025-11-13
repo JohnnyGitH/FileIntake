@@ -4,9 +4,15 @@
 <table class="table table-striped">
     <thread>
         <tr>
-            <th>File Name</th>
-            <th>Uploaded</th>
-            <th>User</th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@(ViewData["FileNameSortParam"])">File Name</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@(ViewData["DateSortParam"])">Uploaded</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@(ViewData["UploaderSortParam"])">Uploader</a>
+            </th>
         </tr>
     </thread>
     <tbody>
