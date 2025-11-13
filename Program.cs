@@ -5,6 +5,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using FileIntake.Data;
+using System;
+using Microsoft.Extensions.Logging;
 
 namespace FileIntake;
 
@@ -18,7 +20,7 @@ public class Program
 
         // Register the DbContext (Replace ApplicationDbContext and connection string name)
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).EnableSensitiveDataLogging());
 
         // Add Identity Services
         builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -27,6 +29,7 @@ public class Program
 
         // Add MVC/View Services
         builder.Services.AddControllersWithViews();
+
 
         var app = builder.Build();
 
@@ -55,6 +58,22 @@ public class Program
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
         app.MapRazorPages(); // Identity UI pages
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            try
+            {
+                var context = services.GetRequiredService<ApplicationDbContext>();
+                DbInitializer.Initialize(context);
+            }
+            catch (Exception ex)
+            {
+                // Log errors or handle them as needed
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "An error occurred while seeding the database.");
+            }
+        }
 
         app.Run();
     }

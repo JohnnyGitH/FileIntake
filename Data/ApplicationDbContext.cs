@@ -1,3 +1,4 @@
+using FileIntake.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,5 +14,15 @@ namespace FileIntake.Data
         
         // TODO: Add my application's database tables (DbSet properties) here later.
         // Example: public DbSet<FileIntake.Models.MyFile> MyFiles { get; set; }
+
+        public DbSet<FileMetadata> Metadata { get; set; }
+        public DbSet<FileTag> FileTags { get; set; }
+        public DbSet<FileRecord> Files { get; set; }
+        public DbSet<UserProfile> Users { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+        }
     }
 }
