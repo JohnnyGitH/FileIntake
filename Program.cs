@@ -68,8 +68,9 @@ public class Program
             var services = scope.ServiceProvider;
             try
             {
+                var serviceProvider = scope.ServiceProvider;
                 var context = services.GetRequiredService<ApplicationDbContext>();
-                DbInitializer.Initialize(context);
+                DbInitializer.Initialize(context, serviceProvider).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {

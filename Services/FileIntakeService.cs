@@ -16,7 +16,7 @@ namespace FileIntake.Services
             _context = context;
         }
 
-        public async Task<List<FileRecord>> GetRecentFilesAsync(int count, string sortOrder = null)
+        public async Task<List<FileRecord>> GetRecentFilesAsync(int count, string sortOrder)
         {
             var query = _context.Files
                 .Include(f => f.UserProfile)
@@ -29,7 +29,7 @@ namespace FileIntake.Services
             return await query.ToListAsync();
         }
 
-        public async Task<FileRecord> GetFileByIdAsync(int id)
+        public async Task<FileRecord?> GetFileByIdAsync(int id)
         {
             return await _context.Files
                 .Include(f => f.UserProfile)

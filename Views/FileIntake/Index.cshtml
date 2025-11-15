@@ -1,4 +1,32 @@
-@model IEnumerable<FileIntake.Models.FileRecord>
+@model FileUploadViewModel
+<div>
+    <h1>File Upload</h1>
+    <div>
+        <form asp-controller="FileIntake" asp-action="Upload" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="fileInput">Select a file to upload:</label>
+                <input type="file" class="form-control-file" id="fileInput" name="file" />
+            </div>
+            <button type="submit" class="btn btn-primary mt-2">Upload</button>
+        </form>
+    </div>
+    <div>
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-info mt-3">
+                @TempData["Error"]
+            </div>
+        } else {
+            <div class="alert alert-success mt-3">
+                <strong>Uploaded File:</strong>
+                File Name: @Model.UploadedFileRecord?.FileName<br />
+                File Path: @Model.UploadedFileRecord?.FilePath<br />
+                File Size: @Model.UploadedFileRecord?.FileSize<br />
+                File ContentType: @Model.UploadedFileRecord?.ContentType<br />
+            </div>
+        }
+    </div>
+</div>
 
 <h2>Recent File Uploads</h2>
 <table class="table table-striped">
@@ -16,7 +44,7 @@
         </tr>
     </thread>
     <tbody>
-        @foreach (var file in Model)
+        @foreach (var file in Model.FileRecords)
         {
             <tr>
                 <td>@file.FileName</td>

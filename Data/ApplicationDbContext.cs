@@ -18,7 +18,7 @@ namespace FileIntake.Data
         public DbSet<FileMetadata> Metadata { get; set; }
         public DbSet<FileTag> FileTags { get; set; }
         public DbSet<FileRecord> Files { get; set; }
-        public DbSet<UserProfile> Users { get; set; }
+        public DbSet<UserProfile> UserProfiles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
