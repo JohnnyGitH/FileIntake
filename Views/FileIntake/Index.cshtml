@@ -1,0 +1,28 @@
+@model IEnumerable<FileIntake.Models.FileRecord>
+
+<h2>Recent File Uploads</h2>
+<table class="table table-striped">
+    <thread>
+        <tr>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@(ViewData["FileNameSortParam"])">File Name</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@(ViewData["DateSortParam"])">Uploaded</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@(ViewData["UploaderSortParam"])">Uploader</a>
+            </th>
+        </tr>
+    </thread>
+    <tbody>
+        @foreach (var file in Model)
+        {
+            <tr>
+                <td>@file.FileName</td>
+                <td>@file.UploadedAt.ToString("g")</td>
+                <td>@file.UserProfile?.FirstName</td>
+            </tr>
+        }
+    </tbody>
+</table>
