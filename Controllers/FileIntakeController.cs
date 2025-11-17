@@ -1,33 +1,111 @@
+using System;
 using System.Threading.Tasks;
+using FileIntake.Data;
 using FileIntake.Interfaces;
+using FileIntake.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FileIntake.Controllers;
 
 public class FileIntakeController : Controller
 {
     private readonly IFileIntakeService _fileIntakeService;
-    const int DefaultRecentFileCount = 5;
+    private readonly UserManager<IdentityUser> _userManager;
+    private readonly ApplicationDbContext _context;
+    private const int DefaultRecentFileCount = 5;
 
-    public FileIntakeController(IFileIntakeService fileIntakeService)
+    public FileIntakeController(IFileIntakeService fileIntakeService, 
+                                UserManager<IdentityUser> userManager,
+                                ApplicationDbContext context)
     {
         _fileIntakeService = fileIntakeService;
+        _userManager = userManager;
+        _context = context;
     }
 
     /// <summary>
-    /// Basic UI to view the recent file intakes.
-    /// Displays a list of recent file intakes with server-side sorting.
+    /// Displays the main upload page along with a sortable list of recent uploads.
     /// </summary>
-    /// <param name="sortOrder">How the files in the table will be sorted</param>
-    /// <returns>View with the files</returns>
-    public async Task<IActionResult> Index(string sortOrder)
+    /// <param name="sortOrder">The requested sort order for the file list.</param>
+    /// <returns>The File Upload view and recent file data.</returns>
+    public async Task<IActionResult> Index(string? sortOrder)
     {
         ViewData["FileNameSortParam"] = string.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
         ViewData["DateSortParam"] = sortOrder == "Date" ? "date_desc" : "Date";
-        ViewData["UploaderSortParam"] = string.IsNullOrEmpty(sortOrder)? "uploader_desc" : "";
+        ViewData["UploaderSortParam"] = string.IsNullOrEmpty(sortOrder)? "uploader_desc" : "Uploader";
 
-        var files = await _fileIntakeService.GetRecentFilesAsync(DefaultRecentFileCount, sortOrder);
+        FileRecord? uploaded = null;
 
-        return View(files);
+        if (TempData["UploadedFileId"] is string raw && int.TryParse(raw, out int id))
+        {
+            uploaded = await _fileIntakeService.GetFileByIdAsync(id);
+        }
+
+        var model = new FileUploadViewModel
+        {
+            FileRecords = await _fileIntakeService.GetRecentFilesAsync(DefaultRecentFileCount, sortOrder),
+            UploadedFileRecord = uploaded
+        };
+
+        return View(model);
+    }
+
+    /// <summary>
+    /// Handles a file upload request, validates the user, and persists file metadata.
+    /// </summary>
+    /// <param name="file">The uploaded file from the client.</param>
+    /// <returns>A redirect back to the Index page.</returns>
+    [HttpPost]
+    public async Task<IActionResult> Upload(IFormFile file)
+    {
+        if(file == null || file.Length == 0)
+        {
+            TempData["Error"] = "No file selected for upload.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var identityUser = await _userManager.GetUserAsync(User);
+
+        if (identityUser == null)
+        {
+            TempData["Error"] = "User not found.";
+            return RedirectToAction("Login", "Account");
+        }
+
+        var userProfile = await _context.UserProfiles
+            .FirstOrDefaultAsync(u => u.IdentityUserId == identityUser.Id);
+
+        if (userProfile == null)
+        {
+            TempData["Error"] = "User profile not found.";
+            return RedirectToAction("Index", "Home");
+        }
+
+        var fileRecord = new FileRecord{
+            Id = 0,
+            FileName = file.FileName,
+            ContentType = file.ContentType,
+            FileSize = file.Length,
+            UploadedAt = DateTime.UtcNow,
+            UserProfileId = userProfile.Id,
+        };
+
+        try
+        {
+            Console.WriteLine($"Starting file upload: {file.FileName}, Size: {file.Length} bytes");
+            await _fileIntakeService.AddFileAsync(fileRecord);
+            TempData["Success"] = "File uploaded successfully.";
+            TempData["UploadedFileId"] = fileRecord.Id.ToString();
+        } 
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error uploading file: {ex.Message}");
+            TempData["Error"] = "Error uploading file.";
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 }
