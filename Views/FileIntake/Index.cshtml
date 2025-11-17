@@ -11,26 +11,33 @@
         </form>
     </div>
     <div>
-        @if (TempData["Error"] != null)
+        @if (!Model.IsFileUploaded && TempData["Error"] != null)
         {
             <div class="alert alert-info mt-3">
                 @TempData["Error"]
             </div>
-        } else {
+        } 
+        else if (Model.IsFileUploaded) 
+        {
             <div class="alert alert-success mt-3">
                 <strong>Uploaded File:</strong><br />
                 File Name: @Model.UploadedFileRecord?.FileName<br />
-                File Path: @Model.UploadedFileRecord?.FilePath<br />
-                File Size: @Model.UploadedFileRecord?.FileSize<br />
+                File Size: @(Model.UploadedFileRecord != null ? $"{Model.UploadedFileRecord.FileSize / 1024.0:F2} KB": "") <br />
                 File ContentType: @Model.UploadedFileRecord?.ContentType<br />
+                File Uploaded At: @Model.UploadedFileRecord?.UploadedAt<br />
             </div>
+        }
+
+        @if (!Model.FileRecords.Any())
+        {
+            <tr><td colspan="3">No recent files uploaded.</td></tr>
         }
     </div>
 </div>
 
 <h2>Recent File Uploads</h2>
 <table class="table table-striped">
-    <thread>
+    <thead>
         <tr>
             <th>
                 <a asp-action="Index" asp-route-sortOrder="@(ViewData["FileNameSortParam"])">File Name</a>
@@ -42,7 +49,7 @@
                 <a asp-action="Index" asp-route-sortOrder="@(ViewData["UploaderSortParam"])">Uploader</a>
             </th>
         </tr>
-    </thread>
+    </thead>
     <tbody>
         @foreach (var file in Model.FileRecords)
         {

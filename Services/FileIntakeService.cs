@@ -20,13 +20,11 @@ namespace FileIntake.Services
         {
             var query = _context.Files
                 .Include(f => f.UserProfile)
-                .OrderByDescending(f => f.UploadedAt)
-                .Take(count)
                 .AsQueryable();
 
             query = ApplySorting(query, sortOrder);
 
-            return await query.ToListAsync();
+            return await query.Take(count).ToListAsync();
         }
 
         public async Task<FileRecord?> GetFileByIdAsync(int id)
@@ -43,11 +41,11 @@ namespace FileIntake.Services
         }
 
         /// <summary>
-        /// Applies sorting to the file query based on the sortOrder parameter.
+        /// Applies server-side sorting based on the provided sortOrder key.
         /// </summary>
-        /// <param name="query">Queried files</param>
-        /// <param name="sortOrder">Request sort order</param>
-        /// <returns>Sorted list of FileRecords</returns>
+        /// <param name="query">The file metadata query.</param>
+        /// <param name="sortOrder">The requested sort order.</param>
+        /// <returns>A sorted IQueryable of FileRecord.</returns>
         private IQueryable<FileRecord> ApplySorting(IQueryable<FileRecord> query, string sortOrder)
         {
             switch (sortOrder)
