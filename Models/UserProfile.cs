@@ -11,8 +11,8 @@ namespace FileIntake.Models
         public string Email { get; set; } = "";
 
         // Like to IdentityUser for authentication
-        public string IdentityUserId { get; set; } = null!;
-        public IdentityUser IdentityUser { get; set; } = null!;
+        public string? IdentityUserId { get; set; }
+        public IdentityUser? IdentityUser { get; set; }
 
         // Navigation property to files
         public ICollection<FileRecord>? Files { get; set; }

@@ -22,22 +22,54 @@ public static class DbInitializer
             return ; // DB has been seeded
         }
 
-        // Seeding Identity User
-        var user = new IdentityUser { UserName = "johnny@example.com", Email = "johnny@example.com" };
-        var result = await userManager.CreateAsync(user, "Password123!");
-        if (!result.Succeeded)
+        var existingUser = await userManager.FindByEmailAsync("johnny@example.com");
+        if (existingUser == null)
         {
-            throw new Exception("Failed to create default user for seeding.");
+            // Seeding Identity User 1
+            var user = new IdentityUser { UserName = "johnny@example.com", Email = "johnny@example.com" };
+            var result = await userManager.CreateAsync(user, "Password123!");
+            if (!result.Succeeded)
+            {
+                Console.WriteLine("Error creating default user.");
+                throw new Exception("Failed to create default user for seeding.");
+            } else
+            {
+                // Create the UserProfile associated with the IdentityUsers - User 1
+                context.UserProfiles.Add(new UserProfile
+                {
+                    FirstName = "Johnny",
+                    LastName = "Cockrem",
+                    Email = user.Email,
+                    IdentityUserId = user.Id  // <-- Link to IdentityUser
+                });
+                Console.WriteLine("Johnny user created successfully.");
+            }
         }
 
-        // Create the UserProfile associated with the IdentityUser
-        context.UserProfiles.Add(new UserProfile
+        var existingUser2 = await userManager.FindByEmailAsync("test@example.com");
+        if (existingUser2 == null)
         {
-            FirstName = "Johnny",
-            LastName = "Cockrem",
-            Email = user.Email,
-            IdentityUserId = user.Id  // <-- Link to IdentityUser
-        });
+            // Seeding Identity User 2
+            var user2 = new IdentityUser { UserName = "test@example.com", Email = "test@example.com" };
+            var result2 = await userManager.CreateAsync(user2, "Password123!");
+            if (!result2.Succeeded)
+            {
+                Console.WriteLine("Error creating default user2.");
+                throw new Exception("Failed to create default user2 for seeding.");
+            } else
+            {
+                // Create the UserProfile associated with the IdentityUsers - User 2
+                context.UserProfiles.Add(new UserProfile
+                {
+                    FirstName = "test",
+                    LastName = "Man",
+                    Email = user2.Email,
+                    IdentityUserId = user2.Id  // <-- Link to IdentityUser
+                });
+                Console.WriteLine("Test user created successfully.");
+            }
+        }
+
         await context.SaveChangesAsync();
 
         // Seeding UserProfile data

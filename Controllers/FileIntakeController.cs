@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using FileIntake.Data;
 using FileIntake.Interfaces;
@@ -37,11 +38,27 @@ public class FileIntakeController : Controller
         ViewData["DateSortParam"] = sortOrder == "Date" ? "date_desc" : "Date";
         ViewData["UploaderSortParam"] = string.IsNullOrEmpty(sortOrder)? "uploader_desc" : "";
 
-        var recentFiles = await _fileIntakeService.GetRecentFilesAsync(DefaultRecentFileCount, sortOrder);
+        FileRecord? uploaded = null;
 
-        return View(recentFiles);
+        if (TempData["UploadedFileId"] is int id)
+        {
+            uploaded = await _fileIntakeService.GetFileByIdAsync(id);
+        }
+
+        var model = new FileUploadViewModel
+        {
+            FileRecords = await _fileIntakeService.GetRecentFilesAsync(DefaultRecentFileCount, sortOrder),
+            UploadedFileRecord = uploaded ?? null
+        };
+
+        return View(model);
     }
 
+    /// <summary>
+    /// This method handles file uploads from the user.
+    /// </summary>
+    /// <param name="file">File uploaded from the user</param>
+    /// <returns>Returns the index view</returns>
     [HttpPost]
     public async Task<IActionResult> Upload(IFormFile file)
     {
@@ -68,14 +85,35 @@ public class FileIntakeController : Controller
         }
 
         var fileRecord = new FileRecord{
-            Id = 0, // Id will be set by the database
+            Id = 0,
             FileName = file.FileName,
             ContentType = file.ContentType,
             FileSize = file.Length,
-            UploadedAt = System.DateTime.UtcNow,
+            UploadedAt = DateTime.UtcNow,
             UserProfileId = userProfile.Id,
         };
 
-        return View(fileRecord);
+        try
+        {
+            Console.WriteLine($"Starting file upload: {file.FileName}, Size: {file.Length} bytes");
+            await _fileIntakeService.AddFileAsync(fileRecord);
+            TempData["Success"] = "File uploaded successfully.";
+        } catch (Exception ex)
+        {
+            Console.WriteLine($"Error uploading file: {ex.Message}");
+            TempData["Error"] = "Error uploading file.";
+        }
+
+        var recentFiles = await _fileIntakeService.GetRecentFilesAsync(DefaultRecentFileCount, null);
+
+        var model = new FileUploadViewModel
+        {
+            FileRecords = recentFiles,
+            UploadedFileRecord = fileRecord
+        };
+
+        TempData["UploadedFileId"] = fileRecord.Id;
+
+        return RedirectToAction(nameof(Index));
     }
 }

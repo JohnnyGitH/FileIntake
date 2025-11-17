@@ -9,12 +9,13 @@ using System;
 using Microsoft.Extensions.Logging;
 using FileIntake.Services;
 using FileIntake.Interfaces;
+using System.Threading.Tasks;
 
 namespace FileIntake;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
 
         // --- STEP 1: Builder Configuration ---
@@ -70,7 +71,7 @@ public class Program
             {
                 var serviceProvider = scope.ServiceProvider;
                 var context = services.GetRequiredService<ApplicationDbContext>();
-                DbInitializer.Initialize(context, serviceProvider).GetAwaiter().GetResult();
+                await DbInitializer.Initialize(context, serviceProvider);
             }
             catch (Exception ex)
             {
