@@ -1,3 +1,4 @@
+[![.NET Build and Test](https://github.com/<OWNER>/<REPO>/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/build-and-test.yml)
 # 📂 FileIntake
 
 **FileIntake** is a C# ASP.NET Core MVC web application that allows users to securely upload PDF files for AI-based analysis and processing.  
