@@ -1,0 +1,26 @@
+# Build results
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+ScaffoldingReadMe.txt
+
+# VS Code settings
+.vscode/
+.history/
+
+# OS junk
+Thumbs.db
+.DS_Store
+appsettings.Development.json
+
+# Binary and Object Files
+[Oo]bj/
+[Bb]in/
