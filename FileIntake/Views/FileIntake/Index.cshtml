@@ -1,0 +1,63 @@
+@model FileUploadViewModel
+<div>
+    <h1>File Upload</h1>
+    <div>
+        <form asp-controller="FileIntake" asp-action="Upload" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="fileInput">Select a file to upload:</label>
+                <input type="file" class="form-control-file" id="fileInput" name="file" />
+            </div>
+            <button type="submit" class="btn btn-primary mt-2">Upload</button>
+        </form>
+    </div>
+    <div>
+        @if (!Model.IsFileUploaded && TempData["Error"] != null)
+        {
+            <div class="alert alert-info mt-3">
+                @TempData["Error"]
+            </div>
+        } 
+        else if (Model.IsFileUploaded) 
+        {
+            <div class="alert alert-success mt-3">
+                <strong>Uploaded File:</strong><br />
+                File Name: @Model.UploadedFileRecord?.FileName<br />
+                File Size: @(Model.UploadedFileRecord != null ? $"{Model.UploadedFileRecord.FileSize / 1024.0:F2} KB": "") <br />
+                File ContentType: @Model.UploadedFileRecord?.ContentType<br />
+                File Uploaded At: @Model.UploadedFileRecord?.UploadedAt<br />
+            </div>
+        }
+
+        @if (!Model.FileRecords.Any())
+        {
+            <tr><td colspan="3">No recent files uploaded.</td></tr>
+        }
+    </div>
+</div>
+
+<h2>Recent File Uploads</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@(ViewData["FileNameSortParam"])">File Name</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@(ViewData["DateSortParam"])">Uploaded</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@(ViewData["UploaderSortParam"])">Uploader</a>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var file in Model.FileRecords)
+        {
+            <tr>
+                <td>@file.FileName</td>
+                <td>@file.UploadedAt.ToString("g")</td>
+                <td>@file.UserProfile?.FirstName</td>
+            </tr>
+        }
+    </tbody>
+</table>
