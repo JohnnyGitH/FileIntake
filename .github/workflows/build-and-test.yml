@@ -29,7 +29,7 @@ jobs:
 
       # Not in use now, but for publishing later
     - name: 📦 Publish Artifact
-      run: dotnet publish FileIntake.csproj --configuration Release -o ${{ env.DOTNET_ROOT }}/publish
+      run: dotnet publish FileIntake/FileIntake.csproj --configuration Release -o ${{ env.DOTNET_ROOT }}/publish
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
