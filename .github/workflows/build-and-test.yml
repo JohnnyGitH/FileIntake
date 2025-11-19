@@ -27,7 +27,7 @@ jobs:
 
     - name: 🧪 Run Unit Tests + Coverage
       run: |
-        COVERAGE_FORMATS='opencover,cobertura'
+        COVERAGE_FORMATS='opencover;cobertura'
         dotnet test FileIntake.Tests/FileIntake.Tests.csproj \
         --no-build \
         --configuration Release \
