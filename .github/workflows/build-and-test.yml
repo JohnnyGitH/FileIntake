@@ -27,7 +27,7 @@ jobs:
 
     - name: 🧪 Run Unit Tests + Coverage
       env:
-          COVERAGE_FORMATS: 'opencover;cobertura'
+          COVERAGE_FORMATS: opencover;cobertura
       run: >
         dotnet test FileIntake.Tests/FileIntake.Tests.csproj
         --no-build
