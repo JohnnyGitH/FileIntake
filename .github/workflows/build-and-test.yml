@@ -26,12 +26,12 @@ jobs:
       run: dotnet build --no-restore --configuration Release
 
     - name: 🧪 Run Unit Tests + Coverage
-      run: |
-        dotnet test FileIntake.Tests/FileIntake.Tests.csproj \
-          --no-build \
-          --configuration Release \
-          /p:CollectCoverage=true \
-          /p:CoverletOutput=./TestResults/coverage/ \
+      run: >
+        dotnet test FileIntake.Tests/FileIntake.Tests.csproj
+          --no-build
+          --configuration Release
+          /p:CollectCoverage=true
+          /p:CoverletOutput=./TestResults/coverage/
           /p:CoverletOutputFormat=opencover;cobertura
 
     - name: 📊 Upload Coverage Artifact
