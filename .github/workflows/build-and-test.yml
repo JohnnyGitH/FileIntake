@@ -32,7 +32,7 @@ jobs:
         --configuration Release
         /p:CollectCoverage=true
         /p:CoverletOutput=./TestResults/coverage/
-        /p:CoverletOutputFormat='opencover;cobertura'
+        /p:CoverletOutputFormat='opencover\;cobertura'
 
     - name: 📊 Upload Coverage Artifact
       uses: actions/upload-artifact@v4
