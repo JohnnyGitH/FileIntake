@@ -26,13 +26,14 @@ jobs:
       run: dotnet build --no-restore --configuration Release
 
     - name: 🧪 Run Unit Tests + Coverage
-      run: >
-        dotnet test FileIntake.Tests/FileIntake.Tests.csproj
-        --no-build
-        --configuration Release
-        /p:CollectCoverage=true
-        /p:CoverletOutput=./TestResults/coverage/
-        /p:CoverletOutputFormat='opencover\;cobertura'
+      run: |
+        COVERAGE_FORMATS='opencover,cobertura'
+        dotnet test FileIntake.Tests/FileIntake.Tests.csproj\
+        --no-build\
+        --configuration Release\
+        /p:CollectCoverage=true\
+        /p:CoverletOutput=./TestResults/coverage/\
+        /p:CoverletOutputFormat="$COVERAGE_FORMATS"
 
     - name: 📊 Upload Coverage Artifact
       uses: actions/upload-artifact@v4
