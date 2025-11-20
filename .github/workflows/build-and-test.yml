@@ -43,6 +43,9 @@ jobs:
         ls -lha
         echo "Listing contents of FileIntake.Tests directory:"
         ls -lha FileIntake.Tests/
+        echo "--- Searching for coverage.xml file ---"
+        # The 'find' command searches the current directory ('.') recursively.
+        find . -name "coverage.xml"
 
     - name: 📊 Upload Coverage Artifact
       uses: actions/upload-artifact@v4
