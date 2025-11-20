@@ -33,18 +33,26 @@ jobs:
         --no-build
         --configuration Release
         /p:CollectCoverage=true
-        /p:CoverletOutput=./TestResults/coverage/
+        /p:CoverletOutput=TestResults/coverage/
         /p:CoverletOutputFormat=${{ env.COVERAGE_FORMATS }}
 
-    - name: 🔍 Debug File System
+    - name: 🐞 Debug File System
       run: |
-        echo "Listing contents of repository root:"
-        ls -lha
-        echo "Listing contents of FileIntake.Tests directory:"
-        ls -lha FileIntake.Tests/
-        echo "--- Searching for coverage.xml file ---"
-        # The 'find' command searches the current directory ('.') recursively.
-        find ${{github.workspace}} -name "coverage*.xml"
+        echo "=== ROOT DIRECTORY ==="
+        ls -R .
+
+        echo "=== Test Project Directory ==="
+        ls -R FileIntake.Tests
+
+        echo "=== TestResults Directory ==="
+        ls -R FileIntake.Tests/TestResults || echo "TestResults folder not found"
+
+        echo "=== Coverage Directory ==="
+        ls -R FileIntake.Tests/TestResults/coverage || echo "coverage folder not found"
+
+        echo "=== Searching for coverage files ==="
+        find . -type f -name "coverage.opencover.xml" -o -name "*.xml" | sed 's/^/FOUND: /'
+
 
     - name: 📊 Upload Coverage Artifact
       uses: actions/upload-artifact@v4
