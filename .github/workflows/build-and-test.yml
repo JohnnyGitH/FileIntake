@@ -32,18 +32,25 @@ jobs:
         dotnet test FileIntake.Tests/FileIntake.Tests.csproj
         --no-build
         --configuration Release
-        /p:CollectCoverage=true
-        /p:CoverletOutput=../coverage/
-        /p:CoverletOutputFormat=${{ env.COVERAGE_FORMATS }}
+        --collect:"XPlat Code Coverage"
+
+#/p:CollectCoverage=true
+# /p:CoverletOutput=../coverage/
+#/p:CoverletOutputFormat=${{ env.COVERAGE_FORMATS }}
 
     - name: 🐞 Debug File System
       run: |
-        echo "=== Repo root ==="
-        ls -R .
         echo "=== Coverage directory ==="
         ls -R ./coverage || echo "No coverage directory"
         echo "=== Searching for files ==="
         find . -name "*.xml" -maxdepth 4
+    
+    - name: 📁 Find Coverage File
+      id: coverage
+      run: |
+        FILE=$(find FileIntake.Tests/TestResults -name 'coverage.cobertura.xml' | head -n 1)
+        echo "file=$FILE" >> $GITHUB_OUTPUT
+        ls -R FileIntake.Tests/TestResults || true
 
 
     - name: 📊 Upload Coverage Artifact
@@ -56,7 +63,8 @@ jobs:
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage/coverage.cobertura.xml,./coverage/coverage.opencover.xml
-        flags: unittests
+        files: ${{ steps.coverage.outputs.file }}
+#files: ./coverage/coverage.cobertura.xml,./coverage/coverage.opencover.xml
+#flags: unittests
         fail_ci_if_error: true
 
