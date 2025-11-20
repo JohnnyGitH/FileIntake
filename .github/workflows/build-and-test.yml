@@ -32,9 +32,8 @@ jobs:
         dotnet test FileIntake.Tests/FileIntake.Tests.csproj
         --no-build
         --configuration Release
-        --results-directory .
         /p:CollectCoverage=true
-        /p:CoverletOutput=coverage.xml
+        /p:CoverletOutput=${{github.workspace}}/coverage/
         /p:CoverletOutputFormat=${{ env.COVERAGE_FORMATS }}
 
     - name: 🔍 Debug File System
@@ -45,19 +44,19 @@ jobs:
         ls -lha FileIntake.Tests/
         echo "--- Searching for coverage.xml file ---"
         # The 'find' command searches the current directory ('.') recursively.
-        find . -name "coverage.xml"
+        find ${{github.workspace}} -name "coverage*.xml"
 
     - name: 📊 Upload Coverage Artifact
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: coverage.xml
+        path: ${{github.workspace}}/coverage/
 
     - name: 🧮 Upload Coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: coverage.xml
+        files: ${{github.workspace}}/coverage/coverage.xml
         flags: unittests
         fail_ci_if_error: true
 
