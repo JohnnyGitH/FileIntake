@@ -36,6 +36,13 @@ jobs:
         /p:CoverletOutput=./coverage.xml
         /p:CoverletOutputFormat=${{ env.COVERAGE_FORMATS }}
 
+    - name: 🔍 Debug File System
+      run: |
+        echo "Listing contents of repository root:"
+        ls -lha
+        echo "Listing contents of FileIntake.Tests directory:"
+        ls -lha FileIntake.Tests/
+
     - name: 📊 Upload Coverage Artifact
       uses: actions/upload-artifact@v4
       with:
