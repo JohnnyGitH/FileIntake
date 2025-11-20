@@ -20,3 +20,7 @@ ScaffoldingReadMe.txt
 Thumbs.db
 .DS_Store
 appsettings.Development.json
+
+# Binary and Object Files
+[Oo]bj/
+[Bb]in/

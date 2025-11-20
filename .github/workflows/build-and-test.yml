@@ -1,38 +1,70 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: ⚙️ .NET CI:Build and Test 
+# .github/workflows/build-and-test.yml
+name: ⚙️ .NET CI:Build, Test & Coverage
 
 on:
   push:
-    #branches: [ "master" ]
   pull_request:
-    #branches: [ "master" ]
 
 jobs:
   build:
-    name: 🛠️ CI:Build, Restore and Test
+    name: 🛠️ CI:Build, Test & Coverage
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Restore dependencies
+
+    - name: 📦 Restore dependencies
       run: dotnet restore
-    - name: 🏗️ Build
-      run: dotnet build --no-restore
-    - name: 🧪 Run Unit Tests
-      run: dotnet test --no-build --verbosity normal
 
-      # Not in use now, but for publishing later
-    - name: 📦 Publish Artifact
-      run: dotnet publish FileIntake.csproj --configuration Release -o ${{ env.DOTNET_ROOT }}/publish
+    - name: 🏗️ Build the solution
+      run: dotnet build --no-restore --configuration Release
 
-    - name: Upload Artifact
+    - name: 🧪 Run Unit Tests + Coverage
+      env:
+        COVERAGE_FORMATS: opencover
+      run: >
+        dotnet test FileIntake.Tests/FileIntake.Tests.csproj
+        --no-build
+        --configuration Release
+        --collect:"XPlat Code Coverage"
+
+#/p:CollectCoverage=true
+# /p:CoverletOutput=../coverage/
+#/p:CoverletOutputFormat=${{ env.COVERAGE_FORMATS }}
+
+    - name: 🐞 Debug File System
+      run: |
+        echo "=== Coverage directory ==="
+        ls -R ./coverage || echo "No coverage directory"
+        echo "=== Searching for files ==="
+        find . -name "*.xml" -maxdepth 4
+    
+    - name: 📁 Find Coverage File
+      id: coverage
+      run: |
+        FILE=$(find FileIntake.Tests/TestResults -name 'coverage.cobertura.xml' | head -n 1)
+        echo "file=$FILE" >> $GITHUB_OUTPUT
+        ls -R FileIntake.Tests/TestResults || true
+
+
+    - name: 📊 Upload Coverage Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: net-app
-        path: ${{ env.DOTNET_ROOT }}/publish
+        name: coverage-report
+        path: ${{github.workspace}}/coverage/
+
+    - name: 🧮 Upload Coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ${{ steps.coverage.outputs.file }}
+#files: ./coverage/coverage.cobertura.xml,./coverage/coverage.opencover.xml
+#flags: unittests
+        fail_ci_if_error: true
+

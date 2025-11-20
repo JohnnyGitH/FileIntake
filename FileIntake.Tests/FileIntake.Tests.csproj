@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FileIntake.csproj" />
+    <ProjectReference Include="..\FileIntake\FileIntake.csproj" />
   </ItemGroup>
 
 </Project>
