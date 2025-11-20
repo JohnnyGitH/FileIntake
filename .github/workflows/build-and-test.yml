@@ -32,8 +32,9 @@ jobs:
         dotnet test FileIntake.Tests/FileIntake.Tests.csproj
         --no-build
         --configuration Release
+        --results-directory .
         /p:CollectCoverage=true
-        /p:CoverletOutput=${{ github.workspace }}/coverage.xml
+        /p:CoverletOutput=coverage.xml
         /p:CoverletOutputFormat=${{ env.COVERAGE_FORMATS }}
 
     - name: 🔍 Debug File System
