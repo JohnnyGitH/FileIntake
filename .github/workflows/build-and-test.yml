@@ -33,25 +33,17 @@ jobs:
         --no-build
         --configuration Release
         /p:CollectCoverage=true
-        /p:CoverletOutput=TestResults/coverage/
+        /p:CoverletOutput=../coverage/
         /p:CoverletOutputFormat=${{ env.COVERAGE_FORMATS }}
 
     - name: 🐞 Debug File System
       run: |
-        echo "=== ROOT DIRECTORY ==="
+        echo "=== Repo root ==="
         ls -R .
-
-        echo "=== Test Project Directory ==="
-        ls -R FileIntake.Tests
-
-        echo "=== TestResults Directory ==="
-        ls -R FileIntake.Tests/TestResults || echo "TestResults folder not found"
-
-        echo "=== Coverage Directory ==="
-        ls -R FileIntake.Tests/TestResults/coverage || echo "coverage folder not found"
-
-        echo "=== Searching for coverage files ==="
-        find . -type f -name "coverage.opencover.xml" -o -name "*.xml" | sed 's/^/FOUND: /'
+        echo "=== Coverage directory ==="
+        ls -R ./coverage || echo "No coverage directory"
+        echo "=== Searching for files ==="
+        find . -name "*.xml" -maxdepth 4
 
 
     - name: 📊 Upload Coverage Artifact
@@ -64,7 +56,7 @@ jobs:
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: ${{github.workspace}}/coverage/coverage.xml
+        files: ./coverage/coverage.cobertura.xml,./coverage/coverage.opencover.xml
         flags: unittests
         fail_ci_if_error: true
 
