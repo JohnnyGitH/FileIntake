@@ -46,6 +46,6 @@ jobs:
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: FileIntake.Tests/TestResults/coverage/coverage.opencover.xml
+        files: FileIntake.Tests/TestResults/coverage/coverage.xml
         flags: unittests
         fail_ci_if_error: true
