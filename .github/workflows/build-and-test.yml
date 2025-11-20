@@ -33,7 +33,7 @@ jobs:
         --no-build
         --configuration Release
         /p:CollectCoverage=true
-        /p:CoverletOutput=${{github.workspace}}/coverage/
+        /p:CoverletOutput=./TestResults/coverage/
         /p:CoverletOutputFormat=${{ env.COVERAGE_FORMATS }}
 
     - name: 🔍 Debug File System
