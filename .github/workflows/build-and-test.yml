@@ -33,7 +33,7 @@ jobs:
         --no-build
         --configuration Release
         /p:CollectCoverage=true
-        /p:CoverletOutput=./TestResults/coverage/coverage.{format}.xml
+        /p:CoverletOutput=./coverage.xml
         /p:CoverletOutputFormat=${{ env.COVERAGE_FORMATS }}
 
     - name: 📊 Upload Coverage Artifact
@@ -49,5 +49,4 @@ jobs:
         files: FileIntake.Tests/TestResults/coverage/coverage.xml
         flags: unittests
         fail_ci_if_error: true
-        root_dir: FileIntake.Tests/TestResults/coverage
 
