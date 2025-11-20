@@ -49,3 +49,5 @@ jobs:
         files: FileIntake.Tests/TestResults/coverage/coverage.xml
         flags: unittests
         fail_ci_if_error: true
+        directory: ./
+
