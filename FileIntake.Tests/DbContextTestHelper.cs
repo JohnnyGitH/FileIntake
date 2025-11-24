@@ -4,6 +4,8 @@ using Moq;
 
 namespace FileIntake.Tests;
 
+// NOT IN USE, PIVOTED TO INMEMORY DB TESTING STRATEGY INSTEAD
+// Kept for reference in case we want to mock DbSets again in the future or other projects
 public static class DbContextTestHelper
 {
     /// <summary>

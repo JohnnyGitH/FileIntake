@@ -24,9 +24,45 @@ public class FileIntakeServiceTests
         // Seed test data for the whole class
         _context.Files.AddRange(new List<FileIntake.Models.FileRecord>
         {
-            new Models.FileRecord { Id = 1, FileName = "FileA.txt", UploadedAt = DateTime.UtcNow.AddDays(-2) },
-            new Models.FileRecord { Id = 2, FileName = "FileB.txt", UploadedAt = DateTime.UtcNow.AddDays(-1) },
-            new Models.FileRecord { Id = 3, FileName = "FileC.txt", UploadedAt = DateTime.UtcNow }
+            new Models.FileRecord 
+            { 
+                Id = 1, 
+                FileName = "FileA.txt", 
+                UploadedAt = DateTime.UtcNow.AddDays(-2),
+                UserProfile = new Models.UserProfile 
+                { 
+                    Id = 1, 
+                    FirstName = "TestUser" ,
+                    LastName = "One",
+                    Email = "user1@test.com"
+                },
+            },
+            new Models.FileRecord 
+            { 
+                Id = 2, 
+                FileName = "FileB.txt", 
+                UploadedAt = DateTime.UtcNow.AddDays(-1),
+                UserProfile = new Models.UserProfile 
+                { 
+                    Id = 2, 
+                    FirstName = "TestUser" ,
+                    LastName = "Two",
+                    Email = "user2@test.com"
+                },
+            },
+            new Models.FileRecord 
+            { 
+                Id = 3, 
+                FileName = "FileC.txt", 
+                UploadedAt = DateTime.UtcNow ,
+                UserProfile = new Models.UserProfile 
+                { 
+                    Id = 3, 
+                    FirstName = "TestUser" ,
+                    LastName = "Three",
+                    Email = "user3@test.com"
+                },
+            }
         });
         _context.SaveChanges();
 
@@ -39,9 +75,18 @@ public class FileIntakeServiceTests
         Assert.True(true);
     }
 
-    // [Fact]
-    // public void FileIntakeService_SortingOrder_ValidSortingOrder()
-    // {
+    [Fact]
+    public async Task FileIntakeService_SortingOrder_ValidSortingOrder()
+    {
+        // Arrange
+        var sortOrder = "name_desc";
+        var expectedOrder = new List<string> { "FileC.txt", "FileB.txt", "FileA.txt" };
 
-    // }
+        // Act
+        var result = await _service.GetRecentFilesAsync(3, sortOrder);
+
+        // Assert
+        var actualOrder = result.Select(f => f.FileName).ToList();
+        Assert.Equal(expectedOrder, actualOrder);
+    }
 }
