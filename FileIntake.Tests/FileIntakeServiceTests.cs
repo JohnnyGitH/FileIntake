@@ -32,7 +32,7 @@ public class FileIntakeServiceTests
                 UserProfile = new Models.UserProfile 
                 { 
                     Id = 1, 
-                    FirstName = "TestUser" ,
+                    FirstName = "ATestUser" ,
                     LastName = "One",
                     Email = "user1@test.com"
                 },
@@ -45,7 +45,7 @@ public class FileIntakeServiceTests
                 UserProfile = new Models.UserProfile 
                 { 
                     Id = 2, 
-                    FirstName = "TestUser" ,
+                    FirstName = "BTestUser" ,
                     LastName = "Two",
                     Email = "user2@test.com"
                 },
@@ -58,7 +58,7 @@ public class FileIntakeServiceTests
                 UserProfile = new Models.UserProfile 
                 { 
                     Id = 3, 
-                    FirstName = "TestUser" ,
+                    FirstName = "CTestUser" ,
                     LastName = "Three",
                     Email = "user3@test.com"
                 },
@@ -70,17 +70,86 @@ public class FileIntakeServiceTests
     }
 
     [Fact]
-    public void Test1()
-    {
-        Assert.True(true);
-    }
-
-    [Fact]
-    public async Task FileIntakeService_SortingOrder_ValidSortingOrder()
+    public async Task FileIntakeService_SortingOrder_ValidSortingOrderNameDesc()
     {
         // Arrange
         var sortOrder = "name_desc";
         var expectedOrder = new List<string> { "FileC.txt", "FileB.txt", "FileA.txt" };
+
+        // Act
+        var result = await _service.GetRecentFilesAsync(3, sortOrder);
+
+        // Assert
+        var actualOrder = result.Select(f => f.FileName).ToList();
+        Assert.Equal(expectedOrder, actualOrder);
+    }
+
+    [Fact]
+    public async Task FileIntakeService_SortingOrder_ValidSortingOrderDate()
+    {
+        // Arrange
+        var sortOrder = "Date";
+        var expectedOrder = new List<string> { "FileA.txt", "FileB.txt", "FileC.txt" };
+
+        // Act
+        var result = await _service.GetRecentFilesAsync(3, sortOrder);
+
+        // Assert
+        var actualOrder = result.Select(f => f.FileName).ToList();
+        Assert.Equal(expectedOrder, actualOrder);
+    }
+
+    [Fact]
+    public async Task FileIntakeService_SortingOrder_ValidSortingOrderDateDesc()
+    {
+        // Arrange
+        var sortOrder = "date_desc";
+        var expectedOrder = new List<string> { "FileC.txt", "FileB.txt", "FileA.txt" };
+
+        // Act
+        var result = await _service.GetRecentFilesAsync(3, sortOrder);
+
+        // Assert
+        var actualOrder = result.Select(f => f.FileName).ToList();
+        Assert.Equal(expectedOrder, actualOrder);
+    }
+
+    [Fact]
+    public async Task FileIntakeService_SortingOrder_ValidSortingOrderUploader()
+    {
+        // Arrange
+        var sortOrder = "Uploader";
+        var expectedOrder = new List<string> { "ATestUser", "BTestUser", "CTestUser" };
+
+        // Act
+        var result = await _service.GetRecentFilesAsync(3, sortOrder);
+
+        // Assert
+        var actualOrder = result.Select(f => f.UserProfile.FirstName).ToList();
+        Assert.Equal(expectedOrder, actualOrder);
+    }
+
+    [Fact]
+    public async Task FileIntakeService_SortingOrder_ValidSortingOrderUploaderDesc()
+    {
+        // Arrange
+        var sortOrder = "uploader_desc";
+        var expectedOrder = new List<string> { "CTestUser", "BTestUser", "ATestUser" };
+
+        // Act
+        var result = await _service.GetRecentFilesAsync(3, sortOrder);
+
+        // Assert
+        var actualOrder = result.Select(f => f.UserProfile.FirstName).ToList();
+        Assert.Equal(expectedOrder, actualOrder);
+    }
+
+    [Fact]
+    public async Task FileIntakeService_SortingOrder_ValidSortingOrderDefault()
+    {
+        // Arrange
+        var sortOrder = "";
+        var expectedOrder = new List<string> { "FileA.txt", "FileB.txt", "FileC.txt" };
 
         // Act
         var result = await _service.GetRecentFilesAsync(3, sortOrder);
