@@ -1,4 +1,5 @@
 using FileIntake.Data;
+using FileIntake.Models;
 using FileIntake.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,14 +23,14 @@ public class FileIntakeServiceTests
         _context = new ApplicationDbContext(options);
 
         // Seed test data for the whole class
-        _context.Files.AddRange(new List<FileIntake.Models.FileRecord>
+        _context.Files.AddRange(new List<FileRecord>
         {
-            new Models.FileRecord 
+            new FileRecord 
             { 
                 Id = 1, 
                 FileName = "FileA.txt", 
                 UploadedAt = DateTime.UtcNow.AddDays(-2),
-                UserProfile = new Models.UserProfile 
+                UserProfile = new UserProfile 
                 { 
                     Id = 1, 
                     FirstName = "ATestUser" ,
@@ -37,12 +38,12 @@ public class FileIntakeServiceTests
                     Email = "user1@test.com"
                 },
             },
-            new Models.FileRecord 
+            new FileRecord 
             { 
                 Id = 2, 
                 FileName = "FileB.txt", 
                 UploadedAt = DateTime.UtcNow.AddDays(-1),
-                UserProfile = new Models.UserProfile 
+                UserProfile = new UserProfile 
                 { 
                     Id = 2, 
                     FirstName = "BTestUser" ,
@@ -50,12 +51,12 @@ public class FileIntakeServiceTests
                     Email = "user2@test.com"
                 },
             },
-            new Models.FileRecord 
+            new FileRecord 
             { 
                 Id = 3, 
                 FileName = "FileC.txt", 
                 UploadedAt = DateTime.UtcNow ,
-                UserProfile = new Models.UserProfile 
+                UserProfile = new UserProfile 
                 { 
                     Id = 3, 
                     FirstName = "CTestUser" ,
@@ -186,5 +187,32 @@ public class FileIntakeServiceTests
 
         // Assert
         Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task FileIntakeService_AddFileAsyncAddFileSuccessfully()
+    {
+        // Arrange
+        var newFile = new FileRecord
+        {
+            FileName = "NewFile.txt",
+            UploadedAt = DateTime.UtcNow,
+            UserProfile = new UserProfile 
+            { 
+                Id = 4, 
+                FirstName = "DTestUser" ,
+                LastName = "Four",
+                Email = "newFileEmail@example.com"
+            }
+        };
+
+        // Act
+        await _service.AddFileAsync(newFile);
+        var result = await _service.GetFileByIdAsync(newFile.Id);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("NewFile.txt", result.FileName);
+
     }
 }
