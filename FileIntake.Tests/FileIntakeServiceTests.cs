@@ -158,4 +158,33 @@ public class FileIntakeServiceTests
         var actualOrder = result.Select(f => f.FileName).ToList();
         Assert.Equal(expectedOrder, actualOrder);
     }
+
+    [Fact]
+    public async Task FileIntakeService_GetFileById_ExistingIdReturnsFile()
+    {
+        // Arrange
+        var fileId = 2;
+        var expectedFile = "FileB.txt";
+
+        // Act
+        var result = await _service.GetFileByIdAsync(fileId);
+
+        // Assert
+        Assert.NotNull(result);
+        
+        Assert.Equal(expectedFile, result.FileName);
+    }
+
+    [Fact]
+    public async Task FileIntakeService_GetFileById_InvalidIdReturnsNothing()
+    {
+        // Arrange
+        var fileId = 200;
+
+        // Act
+        var result = await _service.GetFileByIdAsync(fileId);
+
+        // Assert
+        Assert.Null(result);
+    }
 }
