@@ -5,15 +5,18 @@ using FileIntake.Data;
 using FileIntake.Interfaces;
 using FileIntake.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FileIntake.Services
 {
     public class FileIntakeService : IFileIntakeService
     {
         private readonly ApplicationDbContext _context;
-        public FileIntakeService(ApplicationDbContext context)
+        private readonly ILogger<FileIntakeService> _logger;
+        public FileIntakeService(ApplicationDbContext context, ILogger<FileIntakeService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<List<FileRecord>> GetRecentFilesAsync(int count, string sortOrder)
@@ -23,12 +26,14 @@ namespace FileIntake.Services
                 .AsQueryable();
 
             query = ApplySorting(query, sortOrder);
+            _logger.LogInformation("Fetching {Count} recent files sorted by {SortOrder}", count, sortOrder);
 
             return await query.Take(count).ToListAsync();
         }
 
         public async Task<FileRecord?> GetFileByIdAsync(int id)
         {
+            _logger.LogInformation("Fetching file with ID {FileId}", id);
             return await _context.Files
                 .Include(f => f.UserProfile)
                 .FirstOrDefaultAsync(f => f.Id == id);
@@ -36,6 +41,7 @@ namespace FileIntake.Services
 
         public async Task AddFileAsync(FileRecord file)
         {
+            _logger.LogInformation("Adding new file: {FileName}", file.FileName);
             _context.Files.Add(file);
             await _context.SaveChangesAsync();
         }
