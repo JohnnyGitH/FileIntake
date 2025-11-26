@@ -213,6 +213,31 @@ public class FileIntakeServiceTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal("NewFile.txt", result.FileName);
+    }
 
+    [Fact]
+    public async Task FileIntakeService_AddFileAsyncAddFileFailure()
+    {
+        // Arrange
+        var newFile = new FileRecord
+        {
+            FileName = "NewFile.txt",
+            UploadedAt = DateTime.UtcNow,
+            UserProfile = new UserProfile 
+            { 
+                Id = 4, 
+                FirstName = "DTestUser" ,
+                LastName = "Four",
+                Email = "newFileEmail@example.com"
+            }
+        };
+
+        // Act
+        await _service.AddFileAsync(newFile);
+        var result = await _service.GetFileByIdAsync(newFile.Id);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("NewFile.txt", result.FileName);
     }
 }
