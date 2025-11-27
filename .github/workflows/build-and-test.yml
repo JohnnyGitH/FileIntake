@@ -49,6 +49,12 @@ jobs:
         echo "file=$FILE" >> $GITHUB_OUTPUT
         ls -R FileIntake.Tests/TestResults || true
 
+    - name: 🌌 Print Coverage Value
+      run: |
+        COVERAGE_RATE=$(grep -oP 'line-rate="\K[^"]+' ./coverage/cobertura.xml | head -1)
+        # Convert the rate (e.g., 0.1500) to a percentage (e.g., 15.00) and print it.
+        COVERAGE_PERCENT=$(echo "scale=2; $COVERAGE_RATE * 100" | bc)
+        echo "--- Total Code Coverage: $COVERAGE_PERCENT% ---"
 
     - name: 📊 Upload Coverage Artifact
       uses: actions/upload-artifact@v4
