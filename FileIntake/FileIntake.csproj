@@ -6,6 +6,14 @@
     <UserSecretsId>820d8678-09fd-443e-8a18-66bda96b3c9e</UserSecretsId>
   </PropertyGroup>
 
+  <!-- Exclude folders/files from code coverage -->
+  <ItemGroup>
+    <ExcludeFromCodeCoverage Include="Migrations/**/*.cs" />
+    <ExcludeFromCodeCoverage Include="wwwroot/**/*.*" />
+    <ExcludeFromCodeCoverage Include="obj/**/*.*" />
+    <ExcludeFromCodeCoverage Include="Program.cs" />
+    <ExcludeFromCodeCoverage Include="GlobalUsings.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
