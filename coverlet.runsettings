@@ -7,11 +7,13 @@
           <ExcludeByFile>
             <!-- Exclude specific files/folders from code coverage -->
             **/Areas/**/*.cs,
+            **/Areas/Identity/Pages/**/*.cs,
             **/Migrations/**/*.cs,
             **/wwwroot/**/*.*,
             **/obj/**/*.*,
             **/Program.cs,
             **/GlobalUsings.cs
+            **/Data/**/*.cs,
           </ExcludeByFile>
         </Configuration>
       </DataCollector>
