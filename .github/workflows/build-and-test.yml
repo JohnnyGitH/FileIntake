@@ -33,10 +33,7 @@ jobs:
         --no-build
         --configuration Release
         --collect:"XPlat Code Coverage"
-
-#/p:CollectCoverage=true
-# /p:CoverletOutput=../coverage/
-#/p:CoverletOutputFormat=${{ env.COVERAGE_FORMATS }}
+        --settings coverlet.runsettings
 
     - name: 🐞 Debug File System
       run: |
@@ -64,7 +61,5 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ${{ steps.coverage.outputs.file }}
-#files: ./coverage/coverage.cobertura.xml,./coverage/coverage.opencover.xml
-#flags: unittests
         fail_ci_if_error: true
 
