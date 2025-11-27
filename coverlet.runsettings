@@ -14,6 +14,7 @@
             **/Program.cs,
             **/GlobalUsings.cs
             **/Data/**/*.cs,
+            **/FileIntake/Data/**/*.cs
           </ExcludeByFile>
         </Configuration>
       </DataCollector>
