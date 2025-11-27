@@ -42,19 +42,46 @@ jobs:
         echo "=== Searching for files ==="
         find . -name "*.xml" -maxdepth 4
     
+    #- name: 📁 Find Coverage File
+      # id: coverage
+      # run: |
+      #   FILE=$(find FileIntake.Tests/TestResults -name 'coverage.cobertura.xml' | head -n 1)
+      #   echo "file=$FILE" >> $GITHUB_OUTPUT
+      #   ls -R FileIntake.Tests/TestResults || true
+
     - name: 📁 Find Coverage File
       id: coverage
       run: |
-        FILE=$(find FileIntake.Tests/TestResults -name 'coverage.cobertura.xml' | head -n 1)
+        # The 'find' command successfully locates the dynamically placed file.
+        # It will find 'cobertura.xml' within the TestResults folder structure.
+        FILE=$(find FileIntake.Tests/TestResults -name 'cobertura.xml' | head -n 1)
         echo "file=$FILE" >> $GITHUB_OUTPUT
-        ls -R FileIntake.Tests/TestResults || true
+        echo "Report found at: $FILE"
 
-    - name: 🌌 Print Coverage Value
+    - name: Print Coverage Value
       run: |
-        COVERAGE_RATE=$(grep -oP 'line-rate="\K[^"]+' ./coverage/cobertura.xml | head -1)
-        # Convert the rate (e.g., 0.1500) to a percentage (e.g., 15.00) and print it.
-        COVERAGE_PERCENT=$(echo "scale=2; $COVERAGE_RATE * 100" | bc)
-        echo "--- Total Code Coverage: $COVERAGE_PERCENT% ---"
+        # 1. Retrieve the exact path saved from the previous step (id: coverage)
+        REPORT_PATH="${{ steps.coverage.outputs.file }}"
+
+        if [ -z "$REPORT_PATH" ]; then
+          echo "Error: Coverage report path is empty. Skipping coverage calculation."
+          exit 1
+        fi
+
+        # 2. Extract the line-rate from the XML file using the correct path
+        # grep -oP: uses PCRE regex to print ONLY the match (\K resets the match start)
+        COVERAGE_RATE=$(grep -oP 'line-rate="\K[^"]+' "$REPORT_PATH" | head -1)
+
+        if [ -z "$COVERAGE_RATE" ]; then
+          echo "Error: Could not extract coverage rate from the report file: $REPORT_PATH"
+          COVERAGE_PERCENT="N/A"
+        else
+          # 3. Convert the rate (e.g., 0.1500) to a percentage (e.g., 15.00)
+          # Uses 'bc' (basic calculator) for floating-point arithmetic.
+          COVERAGE_PERCENT=$(echo "scale=2; $COVERAGE_RATE * 100" | bc)
+          echo "--- Total Code Coverage: $COVERAGE_PERCENT% ---"
+        fi
+      shell: /usr/bin/bash -e {0}
 
     - name: 📊 Upload Coverage Artifact
       uses: actions/upload-artifact@v4
