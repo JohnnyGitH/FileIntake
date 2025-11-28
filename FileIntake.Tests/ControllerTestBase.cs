@@ -17,6 +17,8 @@ public class ControllerTestBase
     protected readonly Mock<ApplicationDbContext> _context;
     protected readonly Mock<IFileIntakeService> _fileIntakeServiceMock;
     protected readonly Mock<UserManager<IdentityUser>> _userManagerMock;
+    protected readonly HomeController _homeController;
+    protected readonly AccountController _accountController;
     protected readonly FileIntakeController _controller;
 
     protected readonly string TEST_USER_ID = "test-user-id-1";
@@ -80,6 +82,7 @@ public class ControllerTestBase
             _context.Object
         );
 
+
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext()
@@ -91,6 +94,12 @@ public class ControllerTestBase
                 }, "TestAuthentication"))
             }
         };
+
+        _homeController = new HomeController();
+        _homeController.ControllerContext = _controller.ControllerContext;
+
+        _accountController = new AccountController();
+        _accountController.ControllerContext = _controller.ControllerContext;
 
         // Mock ITempDataProvider and create the TempDataDictionary
         var mockTempDataProvider = new Mock<ITempDataProvider>();
