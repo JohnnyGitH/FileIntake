@@ -4,9 +4,9 @@ using Moq;
 
 public static class TestHelpers
 {
-    public static IFormFile CreateMockFile( string fileName, string content = "Test Content")
+    public static IFormFile CreateMockFile( string fileName, bool isEmpty = false)
     {
-        var bytes = Encoding.UTF8.GetBytes(content);
+        var bytes = isEmpty ? Encoding.UTF8.GetBytes("") : Encoding.UTF8.GetBytes("Test content");
         var stream = new MemoryStream(bytes);
 
         var mockFile = new Mock<IFormFile>();
