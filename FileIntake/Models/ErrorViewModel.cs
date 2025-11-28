@@ -1,5 +1,3 @@
-using System;
-
 namespace FileIntake.Models
 {
     public class ErrorViewModel

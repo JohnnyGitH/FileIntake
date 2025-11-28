@@ -6,8 +6,7 @@
         <Configuration>
           <ExcludeByFile>
             <!-- Exclude specific files/folders from code coverage -->
-            **/Areas/**/*.cs,
-            **/Areas/Identity/Pages/**/*.cs,
+            **/*Areas/Identity/Pages/**/*.cs,
             **/Migrations/**/*.cs,
             **/wwwroot/**/*.*,
             **/obj/**/*.*,

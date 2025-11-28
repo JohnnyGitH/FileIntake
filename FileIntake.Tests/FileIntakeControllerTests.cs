@@ -1,6 +1,13 @@
+using System.Security.Claims;
+using System.Text;
+using FileIntake.Controllers;
 using FileIntake.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Moq;
+using Moq.EntityFrameworkCore;
 
 namespace FileIntake.Tests;
 
@@ -27,5 +34,201 @@ public class FileIntakeControllerTests : ControllerTestBase
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.IsType<FileUploadViewModel>(viewResult.Model);
+    }
+
+    [Fact]
+    public async Task Index_AfterSuccessfulUpload_SetsUploadedFileRecordInModel()
+    {
+        // Arrange
+        var uploadedFileId = 99;
+        var expectedRecord = new FileRecord()
+        {
+            Id = uploadedFileId,
+            FileName = "FileA.pdf"
+        };
+
+        // Mock service to return record with Id from GetFileByIdAsync
+        _fileIntakeServiceMock
+            .Setup(s => s.GetFileByIdAsync(uploadedFileId))
+            .ReturnsAsync(expectedRecord);
+
+        // Setup Controller properties
+        _controller.TempData["UploadedFileId"] = uploadedFileId.ToString();
+
+        _fileIntakeServiceMock
+            .Setup(s => s.GetRecentFilesAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .ReturnsAsync(new List<FileRecord>());
+
+        // Act
+        var result = await _controller.Index(null);
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var viewModel = Assert.IsType<FileUploadViewModel>(viewResult.Model);
+
+        _fileIntakeServiceMock.Verify(s =>s.GetFileByIdAsync(uploadedFileId), Times.Once);
+    }
+
+    [Fact]
+    public async Task Index_WithTempDataError_NoUploadedFileSetsTempDataError()
+    {
+        // Arrange
+        var tempDataErrorMessage = "No file selected for upload.";
+
+        // Setup Controller properties
+        _controller.TempData["Error"] = tempDataErrorMessage;
+
+        _fileIntakeServiceMock
+            .Setup(s => s.GetRecentFilesAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .ReturnsAsync(new List<FileRecord>());
+
+        // Act
+        var result = await _controller.Index(null);
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var viewModel = Assert.IsType<FileUploadViewModel>(viewResult.Model);
+
+        Assert.Null(viewModel.UploadedFileRecord);
+        Assert.Equal(tempDataErrorMessage, _controller.TempData["Error"]);
+
+        _fileIntakeServiceMock.Verify(s =>s.GetFileByIdAsync(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task FileIntakeController_FileUploadSuccessful_SetsTempDataSuccessAndUploadedFileId()
+    {
+        // Arrange
+        var successMessage = "File uploaded successfully.";
+        var uploadedFileId = 99;
+        var fileName = "fileA";
+        var uploadedFile = TestHelpers.CreateMockFile(fileName);
+
+
+        // Mock service to return record with Id from GetFileByIdAsync
+        _fileIntakeServiceMock
+            .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()))
+            .Returns(Task.CompletedTask)
+            .Callback<FileRecord>(r => r.Id = uploadedFileId);
+
+        _fileIntakeServiceMock
+            .Setup(s => s.GetRecentFilesAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .ReturnsAsync(new List<FileRecord>());
+
+        // Act
+        var result = await _controller.Upload(uploadedFile);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+
+        Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
+        Assert.Null(redirectResult.ControllerName);
+        Assert.Equal(successMessage, _controller.TempData["Success"]);
+        Assert.Equal(uploadedFileId.ToString(), _controller.TempData["UploadedFileId"]);
+
+        _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task FileIntakeController_FileUploadFailure_InvalidIdentityUser()
+    {
+        // Arrange
+        var errorMessage = "User not found.";
+        var fileName = "fileA";
+        var expectedControllerName = "Account";
+        var uploadedFile = TestHelpers.CreateMockFile(fileName);
+        
+        // Mock UserManager
+        _userManagerMock
+            .Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            .ReturnsAsync((IdentityUser)null);
+
+        // Act
+        var result = await _controller.Upload(uploadedFile);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+
+        Assert.Equal(nameof(AccountController.Login), redirectResult.ActionName);
+        Assert.Equal(expectedControllerName, redirectResult.ControllerName);
+        Assert.Equal(errorMessage, _controller.TempData["Error"]);
+
+        _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task FileIntakeController_FileUploadFailure_NullFile()
+    {
+        // Arrange
+        var errorMessage = "No file selected for upload.";
+        var uploadedFile = (IFormFile)null;
+
+        // Act
+        var result = await _controller.Upload(uploadedFile);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+
+        Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
+        Assert.Null(redirectResult.ControllerName);
+        Assert.Equal(errorMessage, _controller.TempData["Error"]);
+
+        _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task FileIntakeController_FileUploadFailure_FileLengthZero()
+    {
+        // Arrange
+        var errorMessage = "No file selected for upload.";
+        var fileName = "fileA";
+        var uploadedFile = TestHelpers.CreateMockFile(fileName, true);
+
+        // Act
+        var result = await _controller.Upload(uploadedFile);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+
+        Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
+        Assert.Null(redirectResult.ControllerName);
+        Assert.Equal(errorMessage, _controller.TempData["Error"]);
+
+        _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task FileIntakeController_FileUploadFailure_UserProfileIsNullTempDataError()
+    {
+        // Arrange
+        var successMessage = "User profile not found.";
+        var fileName = "fileA";
+        var expectedControllerRedirect = "Home";
+        var uploadedFile = TestHelpers.CreateMockFile(fileName);
+        var identityUser = new IdentityUser{ Id ="Test-user-id" };
+
+        _userManagerMock
+            .Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            .ReturnsAsync(identityUser);
+
+        _context
+            .Setup(c => c.UserProfiles)
+            .ReturnsDbSet(new List<UserProfile>());
+
+        _fileIntakeServiceMock
+            .Setup(s => s.GetRecentFilesAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .ReturnsAsync(new List<FileRecord>());
+
+        // Act
+        var result = await _controller.Upload(uploadedFile);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+
+        Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
+        Assert.Equal(expectedControllerRedirect, redirectResult.ControllerName);
+        Assert.Equal(successMessage, _controller.TempData["Error"]);
+
+        _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Never);
     }
 }
