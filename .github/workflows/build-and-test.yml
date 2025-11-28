@@ -42,12 +42,12 @@ jobs:
         echo "=== Searching for files ==="
         find . -name "*.xml" -maxdepth 4
 
-    # - name: 📁 Find Coverage File
-    #   id: coverage
-    #   run: |
-    #     FILE=$(find FileIntake.Tests/TestResults -name 'coverage.cobertura.xml' | head -n 1)
-    #     echo "file=$FILE" >> $GITHUB_OUTPUT
-    #     echo "Report found at: $FILE"
+    - name: 📁 Find Coverage File
+      id: coverage
+      run: |
+        FILE=$(find FileIntake.Tests/TestResults -name 'coverage.cobertura.xml' | head -n 1)
+        echo "file=$FILE" >> $GITHUB_OUTPUT
+        echo "Report found at: $FILE"
 
     - name: 🖨️ Print Coverage Value
       run: |
