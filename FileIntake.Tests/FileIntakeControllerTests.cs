@@ -239,7 +239,6 @@ public class FileIntakeControllerTests : ControllerTestBase
         var fileName = "fileA";
         var uploadedFile = TestHelpers.CreateMockFile(fileName);
 
-
         // Mock service to return record with Id from GetFileByIdAsync
         _fileIntakeServiceMock
             .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()))
