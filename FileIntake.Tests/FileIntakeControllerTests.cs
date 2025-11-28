@@ -28,4 +28,63 @@ public class FileIntakeControllerTests : ControllerTestBase
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.IsType<FileUploadViewModel>(viewResult.Model);
     }
+
+    [Fact]
+    public async Task Index_AfterSuccessfulUpload_SetsUploadedFileRecordInModel()
+    {
+        // Arrange
+        var uploadedFileId = 99;
+        var expectedRecord = new FileRecord()
+        {
+            Id = uploadedFileId,
+            FileName = "FileA.pdf"
+        };
+
+        // Mock service to return record with Id from GetFileByIdAsync
+        _fileIntakeServiceMock
+            .Setup(s => s.GetFileByIdAsync(uploadedFileId))
+            .ReturnsAsync(expectedRecord);
+
+        // Setup Controller properties
+        _controller.TempData["UploadedFileId"] = uploadedFileId.ToString();
+
+        _fileIntakeServiceMock
+            .Setup(s => s.GetRecentFilesAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .ReturnsAsync(new List<FileRecord>());
+
+        // Act
+        var result = await _controller.Index(null);
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var viewModel = Assert.IsType<FileUploadViewModel>(viewResult.Model);
+
+        _fileIntakeServiceMock.Verify(s =>s.GetFileByIdAsync(uploadedFileId), Times.Once);
+    }
+
+    [Fact]
+    public async Task Index_WithTempDataError_NoUploadedFileSetsTempDataError()
+    {
+        // Arrange
+        var tempDataErrorMessage = "No file selected for upload.";
+
+        // Setup Controller properties
+        _controller.TempData["Error"] = tempDataErrorMessage;
+
+        _fileIntakeServiceMock
+            .Setup(s => s.GetRecentFilesAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .ReturnsAsync(new List<FileRecord>());
+
+        // Act
+        var result = await _controller.Index(null);
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var viewModel = Assert.IsType<FileUploadViewModel>(viewResult.Model);
+
+        Assert.Null(viewModel.UploadedFileRecord);
+        Assert.Equal(tempDataErrorMessage, _controller.TempData["Error"]);
+
+        _fileIntakeServiceMock.Verify(s =>s.GetFileByIdAsync(It.IsAny<int>()), Times.Never);
+    }
 }
