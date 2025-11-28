@@ -1,11 +1,9 @@
 using System.Security.Claims;
-using System.Text;
 using FileIntake.Controllers;
 using FileIntake.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 
@@ -230,5 +228,37 @@ public class FileIntakeControllerTests : ControllerTestBase
         Assert.Equal(successMessage, _controller.TempData["Error"]);
 
         _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task FileIntakeController_FileUploadFailure_CatchExceptionSetTempDataError()
+    {
+        // Arrange
+        var errorMessage = "Error uploading file.";
+        var uploadedFileId = 99;
+        var fileName = "fileA";
+        var uploadedFile = TestHelpers.CreateMockFile(fileName);
+
+
+        // Mock service to return record with Id from GetFileByIdAsync
+        _fileIntakeServiceMock
+            .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()))
+            .ThrowsAsync(new InvalidOperationException("Error uploading file: "));
+
+        _fileIntakeServiceMock
+            .Setup(s => s.GetRecentFilesAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .ReturnsAsync(new List<FileRecord>());
+
+        // Act
+        var result = await _controller.Upload(uploadedFile);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+
+        Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
+        Assert.Null(redirectResult.ControllerName);
+        Assert.Equal(errorMessage, _controller.TempData["Error"]);
+
+        _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Once);
     }
 }
