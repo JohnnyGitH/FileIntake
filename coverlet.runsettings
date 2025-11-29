@@ -5,18 +5,16 @@
       <DataCollector friendlyName="XPlat code coverage" uri="datacollector://Microsoft/CodeCoverage/1.0" assemblyQualifiedName="Microsoft.VisualStudio.TestTools.DataCollection.XPlatCodeCoverageDataCollector, Microsoft.VisualStudio.TestTools.DataCollection.XPlatCodeCoverage, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
         <Configuration>
           <ExcludeByFile>
-            **/*Areas/Identity/Pages/**/*.cs
-            **/Areas/Identity/**/*.cs
-            **/Migrations/**/*.cs
-            **/wwwroot/**/*.*
-            <!-- **/wwwroot/**/* -->
-            **/obj/**/*.*
-            <!-- **/obj/**/* -->
-            **/bin/**/*
+          <ExcludeByFile>
+            **/*Areas/Identity/Pages/**/*.cs,
+            **/Migrations/**/*.cs,
+            **/wwwroot/**/*.*,
+            **/obj/**/*.*,
             **/Program.cs,
             **/GlobalUsings.cs
-            **/Data/**/*.cs
+            **/Data/**/*.cs,
             **/FileIntake/Data/**/*.cs
+          </ExcludeByFile>
           </ExcludeByFile>
         </Configuration>
       </DataCollector>
