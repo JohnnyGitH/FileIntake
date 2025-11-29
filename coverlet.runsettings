@@ -14,9 +14,9 @@
             **/Program.cs
             **/GlobalUsings.cs
             **/Data/**/*.cs
-            <!-- **/FileIntake/Data/**/*.cs -->
-            **/Data/ApplicationDbContext.cs
-            **/Data/DbInitializer.cs
+            **/FileIntake/Data/**/*.cs
+            <!-- **/Data/ApplicationDbContext.cs
+            **/Data/DbInitializer.cs -->
           </ExcludeByFile>
         </Configuration>
       </DataCollector>
