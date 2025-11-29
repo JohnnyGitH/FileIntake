@@ -6,9 +6,8 @@
         <Configuration>
           <ExcludeByFile>
             **/*Areas/Identity/Pages/**/*.cs,
-            **/Areas/Identity/Pages/Account/*.cs,
-            **/Areas/Identity/Pages/Manage/*.cs,
-            <!-- **/Areas/Identity/**/*.cs -->
+            **/Areas/Identity/Pages/Account/**/*.cs,
+            **/Areas/Identity/Pages/Manage/**/*.cs,
             **/Migrations/**/*.cs,
             **/wwwroot/**/*.*,
             **/obj/**/*.*,
@@ -16,8 +15,6 @@
             **/GlobalUsings.cs,
             **/Data/**/*.cs,
             **/FileIntake/Data/**/*.cs,
-            <!-- **/Data/ApplicationDbContext.cs
-            **/Data/DbInitializer.cs -->
           </ExcludeByFile>
         </Configuration>
       </DataCollector>
