@@ -11,7 +11,7 @@
             **/Migrations/**/*.cs
             **/wwwroot/**/*.*
             **/obj/**/*.*
-            **/Program.cs,
+            **/Program.cs
             **/GlobalUsings.cs
             **/Data/**/*.cs
             <!-- **/FileIntake/Data/**/*.cs -->
