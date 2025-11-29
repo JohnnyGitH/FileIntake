@@ -9,9 +9,9 @@
             **/Areas/Identity/**/*.cs
             **/Migrations/**/*.cs
             **/wwwroot/**/*.*
-            **/wwwroot/**/*
+            <!-- **/wwwroot/**/* -->
             **/obj/**/*.*
-            **/obj/**/*
+            <!-- **/obj/**/* -->
             **/bin/**/*
             **/Program.cs,
             **/GlobalUsings.cs
