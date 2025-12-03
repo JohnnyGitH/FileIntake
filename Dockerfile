@@ -1,5 +1,5 @@
 #Build using SDK 8.0 image
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS Build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy everything, Solution and cs proj files
@@ -16,7 +16,7 @@ WORKDIR /src/FileIntake
 RUN dotnet publish -c Release -o /app/publish
 
 # Smaller Runtime-only environment (excluding compiler)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS Runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
 # Setting up the runtime
 WORKDIR /app

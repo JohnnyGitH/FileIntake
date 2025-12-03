@@ -10,16 +10,18 @@ services:
             - sql
         ports:
             - "8080:8080"
+        env_file:
+            - .env
         environment:
-            - ASPNETCORE_ENVIRONEMNT=Development
-            - ConnectionStrings_DefaultConnection=Server=sql;Database=FileIntakeDB;User=sa;Password=password123;TrustServerCertificate=True;
+            - ASPNETCORE_ENVIRONMENT: Development
+            - ConnectionStrings__DefaultConnection: "${DB_CONNECTION_STRING}"
 
     sql:
         image: mcr.microsoft.com/mssql/server:2022-latest
         container_name: fileintake-sql
         environment:
             ACCEPT_EULA: "Y"
-            SA_PASSWORD: "password123"
+            SA_PASSWORD: "${SA_PASSWORD}"
         ports:
             - "1433:1433"
         volumes:
