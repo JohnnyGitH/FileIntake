@@ -1,5 +1,5 @@
 #Build using SDK 8.0 image
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS Build
 WORKDIR /src
 
 # Copy everything, Solution and cs proj files
@@ -20,7 +20,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
 # Setting up the runtime
 WORKDIR /app
-COPY --from=build /app/publish .
+COPY --from=Build /app/publish .
 
 EXPOSE 8080
 

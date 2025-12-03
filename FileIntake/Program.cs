@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using FileIntake.Services;
 using FileIntake.Interfaces;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.DataProtection;
+using System.IO;
 
 namespace FileIntake;
 
@@ -35,6 +37,10 @@ public class Program
         // Add MVC/View Services
         builder.Services.AddControllersWithViews();
 
+        // Add Explicit DataProtection config
+        builder.Services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo("/keys"))
+            .SetApplicationName("FileIntakeApp");
 
         var app = builder.Build();
 
