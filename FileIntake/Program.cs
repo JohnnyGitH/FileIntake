@@ -42,6 +42,13 @@ public class Program
             .PersistKeysToFileSystem(new DirectoryInfo("/keys"))
             .SetApplicationName("FileIntakeApp");
 
+        builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+        {
+            options.SignIn.RequireConfirmedAccount = false;
+            options.Lockout.AllowedForNewUsers = false;
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline (Middleware).

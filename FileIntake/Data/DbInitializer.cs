@@ -108,13 +108,19 @@ public static class DbInitializer
         // await context.SaveChangesAsync();
     }
 
-    private static async Task SeedUserAsync(UserManager<IdentityUser> userManager,ApplicationDbContext context,string email,string password,string firstName,string lastName)
+    private static async Task SeedUserAsync(UserManager<IdentityUser> userManager, ApplicationDbContext context, string email, string password, string firstName, string lastName)
     {
         var existing = await userManager.FindByEmailAsync(email);
 
         if (existing == null)
         {
-            var user = new IdentityUser { UserName = email, Email = email };
+            var user = new IdentityUser 
+            { 
+                UserName = email, 
+                Email = email,
+                EmailConfirmed = true
+            };
+
             var result = await userManager.CreateAsync(user, password);
 
             if (!result.Succeeded)
@@ -145,6 +151,13 @@ public static class DbInitializer
                     IdentityUserId = existing.Id
                 });
                 Console.WriteLine($"Created missing UserProfile for: {email}");
+            }
+
+            // Make sure email is confirmed for existing users
+            if (!existing.EmailConfirmed)
+            {
+                existing.EmailConfirmed = true;
+                await userManager.UpdateAsync(existing);
             }
 
             // Reset password each startup inside Docker
