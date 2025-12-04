@@ -28,7 +28,12 @@ public class Program
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).EnableSensitiveDataLogging());
 
         // Add Identity Services
-        builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+        builder.Services.AddDefaultIdentity<IdentityUser>(options => 
+                {
+                options.SignIn.RequireConfirmedAccount = false;
+                options.Lockout.AllowedForNewUsers = false;
+                }  
+            )
             .AddEntityFrameworkStores<ApplicationDbContext>();
         // .AddRoles<IdentityRole>() // Uncomment when I implement roles
 
@@ -41,13 +46,6 @@ public class Program
         builder.Services.AddDataProtection()
             .PersistKeysToFileSystem(new DirectoryInfo("/keys"))
             .SetApplicationName("FileIntakeApp");
-
-        builder.Services.AddDefaultIdentity<IdentityUser>(options =>
-        {
-            options.SignIn.RequireConfirmedAccount = false;
-            options.Lockout.AllowedForNewUsers = false;
-        })
-        .AddEntityFrameworkStores<ApplicationDbContext>();
 
         var app = builder.Build();
 
