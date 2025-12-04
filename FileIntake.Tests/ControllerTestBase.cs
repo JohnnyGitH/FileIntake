@@ -20,6 +20,7 @@ public class ControllerTestBase
     protected readonly HomeController _homeController;
     protected readonly AccountController _accountController;
     protected readonly FileIntakeController _controller;
+    protected readonly AIController _aiController;
 
     protected readonly string TEST_USER_ID = "test-user-id-1";
     protected readonly int TEST_PROFILE_ID = 13;
@@ -100,6 +101,9 @@ public class ControllerTestBase
 
         _accountController = new AccountController();
         _accountController.ControllerContext = _controller.ControllerContext;
+
+        _aiController = new AIController();
+        _aiController.ControllerContext = _controller.ControllerContext;
 
         // Mock ITempDataProvider and create the TempDataDictionary
         var mockTempDataProvider = new Mock<ITempDataProvider>();

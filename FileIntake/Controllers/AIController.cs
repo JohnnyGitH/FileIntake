@@ -5,12 +5,7 @@ namespace FileIntake.Controllers;
 
 public class AIController : Controller
 {
-    public AIController()
-    {
-        
-    }
-
-    public async Task<IActionResult> Index()
+    public IActionResult Index()
     {
         return View();
     }

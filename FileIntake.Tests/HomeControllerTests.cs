@@ -1,4 +1,3 @@
-using FileIntake.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FileIntake.Tests;
