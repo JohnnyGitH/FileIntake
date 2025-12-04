@@ -38,6 +38,7 @@ public class FileIntakeController : Controller
         ViewData["UploaderSortParam"] = string.IsNullOrEmpty(sortOrder)? "uploader_desc" : "Uploader";
 
         FileRecord? uploaded = null;
+        string checkSort = sortOrder ?? "";
 
         if (TempData["UploadedFileId"] is string raw && int.TryParse(raw, out int id))
         {
@@ -46,7 +47,7 @@ public class FileIntakeController : Controller
 
         var model = new FileUploadViewModel
         {
-            FileRecords = await _fileIntakeService.GetRecentFilesAsync(DefaultRecentFileCount, sortOrder),
+            FileRecords = await _fileIntakeService.GetRecentFilesAsync(DefaultRecentFileCount, checkSort),
             UploadedFileRecord = uploaded
         };
 
