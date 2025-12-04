@@ -1,9 +1,21 @@
+@{
+        ViewData["Title"] = "AI Page";
+}
+<div class="text-center mt-5">
+    <h1 class="display-4">AI Text Manipulation</h1>
+    <p class="lead">Analyze PDF documents with AI.</p>
+</div>
 <div class="row">
     <div class="col-md-6">
-            <textarea name="fileInput" class="form-control" rows="10"></textarea>
+        <label for="fileInput">Original File Contents</label>
+        <textarea name="fileInput" class="form-control border border-dark shadow-sm" rows="20"></textarea>
     </div>
-    <div class="col-md-6">
-            <textarea name="AIInput" class="form-control" rows="10"></textarea>
+    <div class="col-md-6 ">
+        <label for="AIInput">AI Generated Output</label>
+        <textarea name="AIInput" class="form-control border border-dark shadow-sm" rows="20"></textarea>
     </div>
-Test . AI PAGE . TEST
+</div>
+
+<div class="mt-3">
+    <button class="btn btn-primary">Process with AI</button>
 </div>
