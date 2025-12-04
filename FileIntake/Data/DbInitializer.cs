@@ -27,11 +27,18 @@ public static class DbInitializer
             firstName: "test",
             lastName: "Man");
 
-        // ONLY seed sample File and UserProfile data if profiles table is empty
         if (!context.UserProfiles.Any(up => up.Email == "pam.beesly@dundermifflin.com"))
         {
+            // Seed Office staff first
             SeedSampleUserProfiles(context);
-            SeedSampleFiles(context);
+            await context.SaveChangesAsync();
+
+            // Only seed sample files *if enough sample users exist*
+            var count = context.UserProfiles.Count();
+            if (count >= 25) 
+            {
+                SeedSampleFiles(context);
+            }
         }
 
         await context.SaveChangesAsync();
