@@ -1,3 +1,5 @@
+@model FileUploadViewModel
+
 @{
         ViewData["Title"] = "AI Page";
 }
@@ -8,7 +10,10 @@
 <div class="row">
     <div class="col-md-6">
         <label for="fileInput">Original File Contents</label>
-        <textarea name="fileInput" class="form-control border border-dark shadow-sm" rows="20"></textarea>
+        @if(@Model.UploadedFileRecord == null){
+            <textarea name="fileInput" class="form-control border border-dark shadow-sm" rows="20">No File Contents</textarea>
+        }
+        <textarea name="fileInput" class="form-control border border-dark shadow-sm" rows="20">@Model.UploadedFileRecord?.FileText</textarea>
     </div>
     <div class="col-md-6 ">
         <label for="AIInput">AI Generated Output</label>

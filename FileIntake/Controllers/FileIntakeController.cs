@@ -1,4 +1,8 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using FileIntake.Data;
 using FileIntake.Interfaces;
@@ -7,6 +11,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using UglyToad.PdfPig;
+using UglyToad.PdfPig.Content;
+
 
 namespace FileIntake.Controllers;
 
@@ -85,6 +92,17 @@ public class FileIntakeController : Controller
             return RedirectToAction("Index", "Home");
         }
 
+        var fileBytes = await GetByteArrayFromIFormFile(file);
+        IEnumerable<Word> words = Enumerable.Empty<Word>();
+
+        using (PdfDocument document = PdfDocument.Open(fileBytes))
+        {
+            foreach (Page page in document.GetPages())
+            {
+                words = page.GetWords();
+            }
+        }
+
         var fileRecord = new FileRecord{
             Id = 0,
             FileName = file.FileName,
@@ -92,6 +110,7 @@ public class FileIntakeController : Controller
             FileSize = file.Length,
             UploadedAt = DateTime.UtcNow,
             UserProfileId = userProfile.Id,
+            FileText = words.ToString(),
         };
 
         try
@@ -108,5 +127,21 @@ public class FileIntakeController : Controller
         }
 
         return RedirectToAction(nameof(Index));
+    }
+
+    // Convert IFormFile to byte array for UglyToad PDFPig library
+    private async Task<byte[]> GetByteArrayFromIFormFile(IFormFile file)
+    {
+        if(file == null || file.Length == 0)
+        {
+            return Array.Empty<byte>();
+        }
+
+        using (var memoryStream = new MemoryStream())
+        {
+            await file.CopyToAsync(memoryStream);
+
+            return memoryStream.ToArray();
+        }
     }
 }
