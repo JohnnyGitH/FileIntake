@@ -11,7 +11,7 @@ public class AIController : Controller
     public AIController(IFileIntakeService fileIntakeService)
     {
         _fileIntakeService = fileIntakeService;
-        }
+    }
 
     public async Task<IActionResult> Index(int? id)
     {

@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace FileIntake.Tests;
@@ -21,6 +23,7 @@ public class ControllerTestBase
     protected readonly AccountController _accountController;
     protected readonly FileIntakeController _controller;
     protected readonly AIController _aiController;
+    protected readonly FileIntakeController _fileIntakeController;
 
     protected readonly string TEST_USER_ID = "test-user-id-1";
     protected readonly int TEST_PROFILE_ID = 13;
@@ -58,7 +61,19 @@ public class ControllerTestBase
         _context = new Mock<ApplicationDbContext>(options);
 
         var _userStoreMock = new Mock<IUserStore<IdentityUser>>();
-        _userManagerMock = new Mock<UserManager<IdentityUser>>(_userStoreMock.Object, null, null, null, null, null, null, null, null);
+        
+        _userManagerMock = new Mock<UserManager<IdentityUser>>(
+            _userStoreMock.Object,
+            new Mock<IOptions<IdentityOptions>>().Object,
+            new Mock<IPasswordHasher<IdentityUser>>().Object,
+            Array.Empty<IUserValidator<IdentityUser>>(),
+            Array.Empty<IPasswordValidator<IdentityUser>>(),
+            new Mock<ILookupNormalizer>().Object,
+            new IdentityErrorDescriber(),
+            new Mock<IServiceProvider>().Object,
+            new Mock<ILogger<UserManager<IdentityUser>>>().Object
+            );
+
         _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
             .ReturnsAsync(TEST_IDENTITY_USER);
 
@@ -102,8 +117,15 @@ public class ControllerTestBase
         _accountController = new AccountController();
         _accountController.ControllerContext = _controller.ControllerContext;
 
-        _aiController = new AIController();
+        _fileIntakeController = new FileIntakeController(
+            _fileIntakeServiceMock.Object,
+            _userManagerMock.Object,
+            _context.Object
+        );
+
+        _aiController = new AIController(_fileIntakeServiceMock.Object);
         _aiController.ControllerContext = _controller.ControllerContext;
+
 
         // Mock ITempDataProvider and create the TempDataDictionary
         var mockTempDataProvider = new Mock<ITempDataProvider>();
