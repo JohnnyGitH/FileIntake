@@ -28,7 +28,7 @@
                     File Uploaded At: @Model.UploadedFileRecord?.UploadedAt<br />
                 </div>
                 <div class="col">
-                    <a asp-controller="AI"asp-action="Index" class="btn btn-primary">
+                    <a asp-controller="AI" asp-action="Index" asp-route-id="@Model.UploadedFileRecord?.Id" class="btn btn-primary">
                         <i class="fa-solid fa-wand-magic-sparkles"></i> Ai Magic
                     </a>
                 </div>
