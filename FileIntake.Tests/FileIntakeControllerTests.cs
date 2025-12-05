@@ -97,9 +97,21 @@ public class FileIntakeControllerTests : ControllerTestBase
     public async Task FileIntakeController_FileUploadSuccessful_SetsTempDataSuccessAndUploadedFileId()
     {
         // Arrange
+        var basePath = AppContext.BaseDirectory;
+        var pdfPath = Path.Combine(basePath, "TestFiles", "Sample1.pdf");
+        var fileBytes = File.ReadAllBytes(pdfPath);
+
+        Assert.True(File.Exists(pdfPath), $"Missing test PDF: {pdfPath}");
+
+        var stream = new MemoryStream(fileBytes);
+        var formFile = new FormFile(stream, 0, stream.Length, "file", "Sample1.pdf")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "application/pdf"
+        };
         var successMessage = "File uploaded successfully.";
         var uploadedFileId = 99;
-        var fileName = "fileA";
+        var fileName = "Sample1";
         var uploadedFile = TestHelpers.CreateMockFile(fileName);
 
 

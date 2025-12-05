@@ -34,4 +34,10 @@
     <ProjectReference Include="..\FileIntake\FileIntake.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestFiles\sample.pdf">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
