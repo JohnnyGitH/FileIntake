@@ -1,4 +1,4 @@
-@model FileUploadViewModel
+@model AiPageViewModel
 
 @{
         ViewData["Title"] = "AI Page";
@@ -15,7 +15,7 @@
         {
             <textarea name="fileInput" class="form-control border border-dark shadow-sm" rows="20">No File Contents</textarea>
         }
-        
+
         <textarea name="fileInput" class="form-control border border-dark shadow-sm" rows="20">@Model.UploadedFileRecord?.FileText</textarea>
     </div>
     <div class="col-md-6 ">
@@ -26,4 +26,5 @@
 
 <div class="mt-3">
     <button class="btn btn-primary">Process with AI</button>
+    <a asp-controller="FileIntake" asp-action="Index"class="btn btn-secondary">Back to File Intake page</a>
 </div>

@@ -93,15 +93,18 @@ public class FileIntakeController : Controller
         }
 
         var fileBytes = await GetByteArrayFromIFormFile(file);
-        IEnumerable<Word> words = Enumerable.Empty<Word>();
+        string extractedText = "";
 
         using (PdfDocument document = PdfDocument.Open(fileBytes))
         {
             foreach (Page page in document.GetPages())
             {
-                words = page.GetWords();
+                extractedText = page.Text + "\n\n";
+                Console.WriteLine($"Document info: {extractedText}");
             }
         }
+
+        Console.WriteLine("Final: "+ extractedText);
 
         var fileRecord = new FileRecord{
             Id = 0,
@@ -110,7 +113,7 @@ public class FileIntakeController : Controller
             FileSize = file.Length,
             UploadedAt = DateTime.UtcNow,
             UserProfileId = userProfile.Id,
-            FileText = words.ToString(),
+            FileText = extractedText,
         };
 
         try
