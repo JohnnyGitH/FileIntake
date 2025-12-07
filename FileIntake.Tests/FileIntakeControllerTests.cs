@@ -99,10 +99,6 @@ public class FileIntakeControllerTests : ControllerTestBase
     {
         // Arrange
         string pdfPath = Path.Combine("TestFiles", "Sample1.pdf");
-        // PdfTestHelper.SaveMinimalPdfTo(pdfPath);
-
-        //using var fs = File.OpenRead(pdfPath);
-        // var formFile = new FormFile(fs, 0, fs.Length, "file", "GeneratedMinimal.pdf");
         byte[] pdfBytes = PdfTestHelper.CreateMinimalPdf();
         var stream = new MemoryStream(pdfBytes);
         var fileRecordId = 0;
@@ -118,19 +114,10 @@ public class FileIntakeControllerTests : ControllerTestBase
             ContentType = "application/pdf"
         };
 
-
         // Mock service to return record with Id from GetFileByIdAsync
         _fileIntakeServiceMock
             .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()))
             .Returns(Task.CompletedTask);
-
-        // _fileIntakeServiceMock
-        //     .Setup(s => s.GetFileByIdAsync(It.IsAny<int>()))
-        //     .ReturnsAsync(new FileRecord
-        //     {
-        //         Id = fileRecordId,
-        //         FileName = "Sample1.pdf"
-        //     });
 
         // Act
         var result = await _controller.Upload(formFile);
@@ -173,26 +160,6 @@ public class FileIntakeControllerTests : ControllerTestBase
 
         _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Never);
     }
-
-    // [Fact]
-    // public async Task FileIntakeController_FileUploadFailure_NullFile()
-    // {
-    //     // Arrange
-    //     var errorMessage = "No file selected for upload.";
-    //     var uploadedFile = (IFormFile)null;
-
-    //     // Act
-    //     var result = await _controller.Upload(uploadedFile);
-
-    //     // Assert
-    //     var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-
-    //     Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
-    //     Assert.Null(redirectResult.ControllerName);
-    //     Assert.Equal(errorMessage, _controller.TempData["Error"]);
-
-    //     _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Never);
-    // }
 
     [Fact]
     public async Task FileIntakeController_FileUploadFailure_FileNull()
