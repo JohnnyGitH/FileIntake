@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using FileIntake.Data;
 using FileIntake.Interfaces;
@@ -7,6 +9,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using UglyToad.PdfPig;
+using UglyToad.PdfPig.Content;
+
 
 namespace FileIntake.Controllers;
 
@@ -38,6 +43,7 @@ public class FileIntakeController : Controller
         ViewData["UploaderSortParam"] = string.IsNullOrEmpty(sortOrder)? "uploader_desc" : "Uploader";
 
         FileRecord? uploaded = null;
+        string checkSort = sortOrder ?? "";
 
         if (TempData["UploadedFileId"] is string raw && int.TryParse(raw, out int id))
         {
@@ -46,7 +52,7 @@ public class FileIntakeController : Controller
 
         var model = new FileUploadViewModel
         {
-            FileRecords = await _fileIntakeService.GetRecentFilesAsync(DefaultRecentFileCount, sortOrder),
+            FileRecords = await _fileIntakeService.GetRecentFilesAsync(DefaultRecentFileCount, checkSort),
             UploadedFileRecord = uploaded
         };
 
@@ -84,13 +90,29 @@ public class FileIntakeController : Controller
             return RedirectToAction("Index", "Home");
         }
 
+        var fileBytes = await GetByteArrayFromIFormFile(file);
+        string extractedText = "";
+
+        Console.WriteLine($"First 10 bytes: {BitConverter.ToString(fileBytes.Take(10).ToArray())}");
+
+        using (PdfDocument document = PdfDocument.Open(fileBytes))
+        {
+            foreach (Page page in document.GetPages())
+            {
+                extractedText = page.Text + "\n\n";
+                Console.WriteLine($"Document info: {extractedText}");
+            }
+        }
+
+        Console.WriteLine("Final: "+ extractedText);
+
         var fileRecord = new FileRecord{
-            Id = 0,
             FileName = file.FileName,
             ContentType = file.ContentType,
             FileSize = file.Length,
             UploadedAt = DateTime.UtcNow,
             UserProfileId = userProfile.Id,
+            FileText = extractedText,
         };
 
         try
@@ -107,5 +129,25 @@ public class FileIntakeController : Controller
         }
 
         return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>
+    /// Converts an <see cref="IFormFile"/> into a byte array
+    /// </summary>
+    /// <param name="file"><see cref="IFormFile"/> to be converted to the byte array</param>
+    /// <returns>A byte array from the input <see cref="IFormFile"/></returns>
+    private async Task<byte[]> GetByteArrayFromIFormFile(IFormFile file)
+    {
+        if(file == null || file.Length == 0)
+        {
+            return Array.Empty<byte>();
+        }
+
+        using (var memoryStream = new MemoryStream())
+        {
+            await file.CopyToAsync(memoryStream);
+
+            return memoryStream.ToArray();
+        }
     }
 }

@@ -6,7 +6,7 @@
     <h1 class="display-4">Welcome to File Intake</h1>
     <p class="lead">Securely upload and analyze PDF documents with AI.</p>
 
-    @if(!User.Identity.IsAuthenticated){
+    @if(User?.Identity?.IsAuthenticated ?? false){
         <a class="btn btn-primary mt-3" href="/Identity/Account/Login">Login</a>
     } else {
         <a class="btn btn-primary mt-3" href="/FileIntake">Go to File Uploads</a>

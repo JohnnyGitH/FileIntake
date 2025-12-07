@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Moq.EntityFrameworkCore;
+using static TestHelpers;
 
 namespace FileIntake.Tests;
 
@@ -97,24 +98,30 @@ public class FileIntakeControllerTests : ControllerTestBase
     public async Task FileIntakeController_FileUploadSuccessful_SetsTempDataSuccessAndUploadedFileId()
     {
         // Arrange
+        string pdfPath = Path.Combine("TestFiles", "Sample1.pdf");
+        byte[] pdfBytes = PdfTestHelper.CreateMinimalPdf();
+        var stream = new MemoryStream(pdfBytes);
+        var expectedId = 123;
         var successMessage = "File uploaded successfully.";
-        var uploadedFileId = 99;
-        var fileName = "fileA";
-        var uploadedFile = TestHelpers.CreateMockFile(fileName);
 
+        PdfTestHelper.SaveMinimalPdfTo(pdfPath);
+
+        await using var pdfStream = File.OpenRead(pdfPath);
+
+        var formFile = new FormFile(stream, 0, pdfBytes.Length, "file", "Sample1.pdf")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "application/pdf"
+        };
 
         // Mock service to return record with Id from GetFileByIdAsync
         _fileIntakeServiceMock
             .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()))
-            .Returns(Task.CompletedTask)
-            .Callback<FileRecord>(r => r.Id = uploadedFileId);
-
-        _fileIntakeServiceMock
-            .Setup(s => s.GetRecentFilesAsync(It.IsAny<int>(), It.IsAny<string>()))
-            .ReturnsAsync(new List<FileRecord>());
+            .Callback<FileRecord>(f => f.Id = expectedId)
+            .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _controller.Upload(uploadedFile);
+        var result = await _controller.Upload(formFile);
 
         // Assert
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
@@ -122,7 +129,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
         Assert.Null(redirectResult.ControllerName);
         Assert.Equal(successMessage, _controller.TempData["Success"]);
-        Assert.Equal(uploadedFileId.ToString(), _controller.TempData["UploadedFileId"]);
+        Assert.Equal(expectedId.ToString(), _controller.TempData["UploadedFileId"]);
 
         _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Once);
     }
@@ -134,7 +141,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         var errorMessage = "User not found.";
         var fileName = "fileA";
         var expectedControllerName = "Account";
-        var uploadedFile = TestHelpers.CreateMockFile(fileName);
+        var uploadedFile = CreateMockPDFFile(fileName);
         
         // Mock UserManager
         _userManagerMock
@@ -155,14 +162,16 @@ public class FileIntakeControllerTests : ControllerTestBase
     }
 
     [Fact]
-    public async Task FileIntakeController_FileUploadFailure_NullFile()
+    public async Task FileIntakeController_FileUploadFailure_FileNull()
     {
         // Arrange
         var errorMessage = "No file selected for upload.";
-        var uploadedFile = (IFormFile)null;
+        var fileName = "fileA";
+        var uploadedFile = CreateMockPDFFile(fileName, true);
+        var nullFile = (IFormFile)null;
 
         // Act
-        var result = await _controller.Upload(uploadedFile);
+        var result = await _controller.Upload(nullFile);
 
         // Assert
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
@@ -180,7 +189,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         // Arrange
         var errorMessage = "No file selected for upload.";
         var fileName = "fileA";
-        var uploadedFile = TestHelpers.CreateMockFile(fileName, true);
+        var uploadedFile = CreateMockPDFFile(fileName, true);
 
         // Act
         var result = await _controller.Upload(uploadedFile);
@@ -202,7 +211,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         var successMessage = "User profile not found.";
         var fileName = "fileA";
         var expectedControllerRedirect = "Home";
-        var uploadedFile = TestHelpers.CreateMockFile(fileName);
+        var uploadedFile = CreateMockPDFFile(fileName);
         var identityUser = new IdentityUser{ Id ="Test-user-id" };
 
         _userManagerMock
@@ -222,7 +231,6 @@ public class FileIntakeControllerTests : ControllerTestBase
 
         // Assert
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-
         Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
         Assert.Equal(expectedControllerRedirect, redirectResult.ControllerName);
         Assert.Equal(successMessage, _controller.TempData["Error"]);
@@ -237,7 +245,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         var errorMessage = "Error uploading file.";
         var uploadedFileId = 99;
         var fileName = "fileA";
-        var uploadedFile = TestHelpers.CreateMockFile(fileName);
+        var uploadedFile = TestHelpers.CreateMockPDFFile(fileName);
 
         // Mock service to return record with Id from GetFileByIdAsync
         _fileIntakeServiceMock

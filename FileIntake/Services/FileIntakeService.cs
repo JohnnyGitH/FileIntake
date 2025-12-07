@@ -63,9 +63,9 @@ namespace FileIntake.Services
                 case "date_desc":
                     return query.OrderByDescending(f => f.UploadedAt);
                 case "Uploader":
-                    return query.OrderBy(f => f.UserProfile.FirstName);
+                    return query.OrderBy(f => f.UserProfile!.FirstName);
                 case "uploader_desc":
-                    return query.OrderByDescending(f => f.UserProfile.FirstName);
+                    return query.OrderByDescending(f => f.UserProfile!.FirstName);
                 default:
                     return query.OrderBy(f => f.FileName);
             }

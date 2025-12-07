@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using FileIntake.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FileIntake.Data;
@@ -16,63 +15,97 @@ public static class DbInitializer
         context.Database.EnsureCreated();
         var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-        if (context.Files.Any())
-        {
-            Console.WriteLine($"Seeding {context.Files} files...");
-            return ; // DB has been seeded
-        }
+        await SeedUserAsync(userManager, context,
+            email: "johnny@example.com",
+            password: "Password123!",
+            firstName: "Johnny",
+            lastName: "Cockrem");
 
-        var existingUser = await userManager.FindByEmailAsync("johnny@example.com");
-        if (existingUser == null)
-        {
-            // Seeding Identity User 1
-            var user = new IdentityUser { UserName = "johnny@example.com", Email = "johnny@example.com" };
-            var result = await userManager.CreateAsync(user, "Password123!");
-            if (!result.Succeeded)
-            {
-                Console.WriteLine("Error creating default user.");
-                throw new Exception("Failed to create default user for seeding.");
-            } else
-            {
-                // Create the UserProfile associated with the IdentityUsers - User 1
-                context.UserProfiles.Add(new UserProfile
-                {
-                    FirstName = "Johnny",
-                    LastName = "Cockrem",
-                    Email = user.Email,
-                    IdentityUserId = user.Id  // <-- Link to IdentityUser
-                });
-                Console.WriteLine("Johnny user created successfully.");
-            }
-        }
+        await SeedUserAsync(userManager, context,
+            email: "test@example.com",
+            password: "Password123!",
+            firstName: "test",
+            lastName: "Man");
 
-        var existingUser2 = await userManager.FindByEmailAsync("test@example.com");
-        if (existingUser2 == null)
+        if (!context.UserProfiles.Any(up => up.Email == "pam.beesly@dundermifflin.com"))
         {
-            // Seeding Identity User 2
-            var user2 = new IdentityUser { UserName = "test@example.com", Email = "test@example.com" };
-            var result2 = await userManager.CreateAsync(user2, "Password123!");
-            if (!result2.Succeeded)
+            // Seed Office staff first
+            SeedSampleUserProfiles(context);
+            await context.SaveChangesAsync();
+
+            // Only seed sample files *if enough sample users exist*
+            var count = context.UserProfiles.Count();
+            if (count >= 25) 
             {
-                Console.WriteLine("Error creating default user2.");
-                throw new Exception("Failed to create default user2 for seeding.");
-            } else
-            {
-                // Create the UserProfile associated with the IdentityUsers - User 2
-                context.UserProfiles.Add(new UserProfile
-                {
-                    FirstName = "test",
-                    LastName = "Man",
-                    Email = user2.Email,
-                    IdentityUserId = user2.Id  // <-- Link to IdentityUser
-                });
-                Console.WriteLine("Test user created successfully.");
+                SeedSampleFiles(context);
             }
         }
 
         await context.SaveChangesAsync();
+    }
 
-        // Seeding UserProfile data
+    private static async Task SeedUserAsync(UserManager<IdentityUser> userManager, ApplicationDbContext context, string email, string password, string firstName, string lastName)
+    {
+        var existing = await userManager.FindByEmailAsync(email);
+
+        if (existing == null)
+        {
+            var user = new IdentityUser 
+            { 
+                UserName = email, 
+                Email = email,
+                EmailConfirmed = true
+            };
+
+            var result = await userManager.CreateAsync(user, password);
+
+            if (!result.Succeeded)
+            {
+                throw new Exception("Failed to create user: " + email);
+            }
+
+            context.UserProfiles.Add(new UserProfile
+            {
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName,
+                IdentityUserId = user.Id
+            });
+
+            Console.WriteLine($"Created seeded user: {email}");
+        }
+        else
+        {
+            // Ensure profile exists
+            if (!context.UserProfiles.Any(p => p.Email == email))
+            {
+                context.UserProfiles.Add(new UserProfile
+                {
+                    Email = email,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    IdentityUserId = existing.Id
+                });
+                Console.WriteLine($"Created missing UserProfile for: {email}");
+            }
+
+            // Make sure email is confirmed for existing users
+            if (!existing.EmailConfirmed)
+            {
+                existing.EmailConfirmed = true;
+                await userManager.UpdateAsync(existing);
+            }
+
+            // Reset password each startup inside Docker
+            await userManager.RemovePasswordAsync(existing);
+            await userManager.AddPasswordAsync(existing, password);
+
+            Console.WriteLine($"{email} password reset during seeding");
+        }
+    }
+
+    private static void SeedSampleUserProfiles(ApplicationDbContext context)
+    {
         var users = new UserProfile[]
         {
             new UserProfile { FirstName = "Pamela", LastName = "Beesly", Email = "pam.beesly@dundermifflin.com" },
@@ -104,8 +137,12 @@ public static class DbInitializer
             new UserProfile { FirstName = "Karen", LastName = "Filippelli", Email = "karen.filippelli@dundermifflin.com" }
         };
 
-        context.AddRange(users);
-        context.SaveChanges();
+        context.UserProfiles.AddRange(users);
+    }
+
+    private static void SeedSampleFiles(ApplicationDbContext context)
+    {
+        var users = context.UserProfiles.ToList();
 
         var files = new FileRecord[]
         {
@@ -139,7 +176,6 @@ public static class DbInitializer
             new FileRecord { FileName = "Innovation_Strategy.pdf", FilePath="C:\\Uploads\\2025\\R&D\\Innovation_Strategy.pdf", UserProfileId = users[20].Id, FileSize = 360, UploadedAt = DateTime.Now.AddDays(-28) }
         };
 
-        context.AddRange(files);
-        context.SaveChanges();
-        }
+        context.Files.AddRange(files);
+    }
 }
