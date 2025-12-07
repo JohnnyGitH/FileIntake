@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using FileIntake.Data;
 using FileIntake.Interfaces;
@@ -91,6 +92,8 @@ public class FileIntakeController : Controller
 
         var fileBytes = await GetByteArrayFromIFormFile(file);
         string extractedText = "";
+
+        Console.WriteLine($"First 10 bytes: {BitConverter.ToString(fileBytes.Take(10).ToArray())}");
 
         using (PdfDocument document = PdfDocument.Open(fileBytes))
         {

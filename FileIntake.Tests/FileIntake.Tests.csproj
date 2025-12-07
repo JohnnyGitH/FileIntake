@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestFiles\sample.pdf">
+    <None Update="TestFiles\Sample1.pdf">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
