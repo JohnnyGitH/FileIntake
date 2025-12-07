@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using FileIntake.Data;
 using FileIntake.Interfaces;
@@ -9,24 +6,24 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
-
 
 namespace FileIntake.Controllers;
 
 public class FileIntakeController : Controller
 {
     private readonly IFileIntakeService _fileIntakeService;
+    private readonly IFileProcessingService _fileProcessingService;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly ApplicationDbContext _context;
     private const int DefaultRecentFileCount = 5;
 
     public FileIntakeController(IFileIntakeService fileIntakeService, 
+                                IFileProcessingService fileProcessingService,
                                 UserManager<IdentityUser> userManager,
                                 ApplicationDbContext context)
     {
         _fileIntakeService = fileIntakeService;
+        _fileProcessingService = fileProcessingService;
         _userManager = userManager;
         _context = context;
     }
@@ -67,12 +64,6 @@ public class FileIntakeController : Controller
     [HttpPost]
     public async Task<IActionResult> Upload(IFormFile file)
     {
-        if(file == null || file.Length == 0)
-        {
-            TempData["Error"] = "No file selected for upload.";
-            return RedirectToAction(nameof(Index));
-        }
-
         var identityUser = await _userManager.GetUserAsync(User);
 
         if (identityUser == null)
@@ -90,64 +81,13 @@ public class FileIntakeController : Controller
             return RedirectToAction("Index", "Home");
         }
 
-        var fileBytes = await GetByteArrayFromIFormFile(file);
-        string extractedText = "";
+        var userId = userProfile.Id;
 
-        Console.WriteLine($"First 10 bytes: {BitConverter.ToString(fileBytes.Take(10).ToArray())}");
+        var record = await _fileProcessingService.ProcessFile(file, userId);
 
-        using (PdfDocument document = PdfDocument.Open(fileBytes))
-        {
-            foreach (Page page in document.GetPages())
-            {
-                extractedText = page.Text + "\n\n";
-                Console.WriteLine($"Document info: {extractedText}");
-            }
-        }
-
-        Console.WriteLine("Final: "+ extractedText);
-
-        var fileRecord = new FileRecord{
-            FileName = file.FileName,
-            ContentType = file.ContentType,
-            FileSize = file.Length,
-            UploadedAt = DateTime.UtcNow,
-            UserProfileId = userProfile.Id,
-            FileText = extractedText,
-        };
-
-        try
-        {
-            Console.WriteLine($"Starting file upload: {file.FileName}, Size: {file.Length} bytes");
-            await _fileIntakeService.AddFileAsync(fileRecord);
-            TempData["Success"] = "File uploaded successfully.";
-            TempData["UploadedFileId"] = fileRecord.Id.ToString();
-        } 
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error uploading file: {ex.Message}");
-            TempData["Error"] = "Error uploading file.";
-        }
+        TempData["Success"] = "File uploaded successfully.";
+        TempData["UploadedFileId"] = record.FileRecord.Id.ToString();
 
         return RedirectToAction(nameof(Index));
-    }
-
-    /// <summary>
-    /// Converts an <see cref="IFormFile"/> into a byte array
-    /// </summary>
-    /// <param name="file"><see cref="IFormFile"/> to be converted to the byte array</param>
-    /// <returns>A byte array from the input <see cref="IFormFile"/></returns>
-    private async Task<byte[]> GetByteArrayFromIFormFile(IFormFile file)
-    {
-        if(file == null || file.Length == 0)
-        {
-            return Array.Empty<byte>();
-        }
-
-        using (var memoryStream = new MemoryStream())
-        {
-            await file.CopyToAsync(memoryStream);
-
-            return memoryStream.ToArray();
-        }
     }
 }
