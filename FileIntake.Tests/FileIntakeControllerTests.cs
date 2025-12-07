@@ -101,7 +101,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         string pdfPath = Path.Combine("TestFiles", "Sample1.pdf");
         byte[] pdfBytes = PdfTestHelper.CreateMinimalPdf();
         var stream = new MemoryStream(pdfBytes);
-        var fileRecordId = 0;
+        var expectedId = 123;
         var successMessage = "File uploaded successfully.";
 
         PdfTestHelper.SaveMinimalPdfTo(pdfPath);
@@ -117,6 +117,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         // Mock service to return record with Id from GetFileByIdAsync
         _fileIntakeServiceMock
             .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()))
+            .Callback<FileRecord>(f => f.Id = expectedId)
             .Returns(Task.CompletedTask);
 
         // Act
@@ -128,10 +129,9 @@ public class FileIntakeControllerTests : ControllerTestBase
         Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
         Assert.Null(redirectResult.ControllerName);
         Assert.Equal(successMessage, _controller.TempData["Success"]);
-        Assert.Equal(fileRecordId.ToString(), _controller.TempData["UploadedFileId"]);
+        Assert.Equal(expectedId.ToString(), _controller.TempData["UploadedFileId"]);
 
         _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Once);
-        //_fileIntakeServiceMock.Verify(s =>s.GetFileByIdAsync(It.IsAny<int>()), Times.Once);
     }
 
     [Fact]
@@ -231,7 +231,6 @@ public class FileIntakeControllerTests : ControllerTestBase
 
         // Assert
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-
         Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
         Assert.Equal(expectedControllerRedirect, redirectResult.ControllerName);
         Assert.Equal(successMessage, _controller.TempData["Error"]);

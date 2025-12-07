@@ -107,7 +107,6 @@ public class FileIntakeController : Controller
         Console.WriteLine("Final: "+ extractedText);
 
         var fileRecord = new FileRecord{
-            Id = 0,
             FileName = file.FileName,
             ContentType = file.ContentType,
             FileSize = file.Length,
@@ -132,7 +131,11 @@ public class FileIntakeController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // Convert IFormFile to byte array for UglyToad PDFPig library
+    /// <summary>
+    /// Converts an <see cref="IFormFile"/> into a byte array
+    /// </summary>
+    /// <param name="file"><see cref="IFormFile"/> to be converted to the byte array</param>
+    /// <returns>A byte array from the input <see cref="IFormFile"/></returns>
     private async Task<byte[]> GetByteArrayFromIFormFile(IFormFile file)
     {
         if(file == null || file.Length == 0)
