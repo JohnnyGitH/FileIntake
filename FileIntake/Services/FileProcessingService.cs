@@ -54,14 +54,9 @@ public class FileProcessingService : IFileProcessingService
                 }
             }
         }
-        catch (FileProcessingException ex)
+        catch (Exception ex)
         {
-            return new FileProcessingResult
-            {
-                success = false,
-                ErrorMessage = $"Error uploading file: {ex.Message}",
-                SavedToDatabase = false
-            };
+           throw new FileProcessingException("Failed to extract text from the PDF.", ex);
         }
 
         var fileRecord = new FileRecord{

@@ -18,6 +18,7 @@ public class ControllerTestBase
 {
     protected readonly Mock<ApplicationDbContext> _context;
     protected readonly Mock<IFileIntakeService> _fileIntakeServiceMock;
+    protected readonly Mock<IFileProcessingService> _fileProcessingServiceMock;
     protected readonly Mock<UserManager<IdentityUser>> _userManagerMock;
     protected readonly HomeController _homeController;
     protected readonly AccountController _accountController;
@@ -58,6 +59,7 @@ public class ControllerTestBase
         .Options;
 
         _fileIntakeServiceMock = new Mock<IFileIntakeService>();
+        _fileProcessingServiceMock = new Mock<IFileProcessingService>();
         _context = new Mock<ApplicationDbContext>(options);
 
         var _userStoreMock = new Mock<IUserStore<IdentityUser>>();
@@ -94,6 +96,7 @@ public class ControllerTestBase
 
         _controller = new FileIntakeController(
             _fileIntakeServiceMock.Object,
+            _fileProcessingServiceMock.Object,
             _userManagerMock.Object,
             _context.Object
         );
@@ -119,6 +122,7 @@ public class ControllerTestBase
 
         _fileIntakeController = new FileIntakeController(
             _fileIntakeServiceMock.Object,
+            _fileProcessingServiceMock.Object,
             _userManagerMock.Object,
             _context.Object
         );

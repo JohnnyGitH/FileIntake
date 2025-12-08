@@ -12,7 +12,7 @@ public class FileProcessingException : Exception
     {
     }
 
-    public FileProcessingException(string message, Exception innerException) : base(message, innerException)
+    public FileProcessingException(string message, Exception? inner = null) : base(message, inner)
     {
     }
 }
