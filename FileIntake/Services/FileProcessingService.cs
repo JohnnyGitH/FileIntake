@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using FileIntake.Exceptions;
 using FileIntake.Interfaces;
 using FileIntake.Models;
 using Microsoft.AspNetCore.Http;
@@ -42,16 +43,26 @@ public class FileProcessingService : IFileProcessingService
 
         Console.WriteLine($"First 10 bytes: {BitConverter.ToString(fileBytes.Take(10).ToArray())}");
 
-        using (PdfDocument document = PdfDocument.Open(fileBytes))
+        try
         {
-            foreach (Page page in document.GetPages())
+            using (PdfDocument document = PdfDocument.Open(fileBytes))
             {
-                extractedText = page.Text + "\n\n";
-                Console.WriteLine($"Document info: {extractedText}");
+                foreach (Page page in document.GetPages())
+                {
+                    extractedText += page.Text + "\n\n";
+                    Console.WriteLine($"Document info: {extractedText}");
+                }
             }
         }
-
-        Console.WriteLine("Final: "+ extractedText);
+        catch (FileProcessingException ex)
+        {
+            return new FileProcessingResult
+            {
+                success = false,
+                ErrorMessage = $"Error uploading file: {ex.Message}",
+                SavedToDatabase = false
+            };
+        }
 
         var fileRecord = new FileRecord{
             FileName = file.FileName,
@@ -76,7 +87,6 @@ public class FileProcessingService : IFileProcessingService
         } 
         catch (Exception ex)
         {
-            Console.WriteLine();
             return new FileProcessingResult
             {
                 success = false,

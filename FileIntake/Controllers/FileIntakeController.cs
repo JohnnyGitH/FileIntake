@@ -85,8 +85,15 @@ public class FileIntakeController : Controller
 
         var record = await _fileProcessingService.ProcessFile(file, userId);
 
-        TempData["Success"] = "File uploaded successfully.";
-        TempData["UploadedFileId"] = record.FileRecord.Id.ToString();
+        if (record.success)
+        {
+            TempData["Success"] = "File uploaded successfully.";
+            TempData["UploadedFileId"] = record.FileRecord.Id.ToString();
+        } else
+        {
+            TempData["Error"] = $"{record.ErrorMessage}";
+        }
+
 
         return RedirectToAction(nameof(Index));
     }
