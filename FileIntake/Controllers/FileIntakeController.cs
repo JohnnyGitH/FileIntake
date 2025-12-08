@@ -94,7 +94,6 @@ public class FileIntakeController : Controller
             TempData["Error"] = $"{record.ErrorMessage}";
         }
 
-
         return RedirectToAction(nameof(Index));
     }
 }
