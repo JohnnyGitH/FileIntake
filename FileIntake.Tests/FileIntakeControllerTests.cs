@@ -33,6 +33,8 @@ public class FileIntakeControllerTests : ControllerTestBase
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.IsType<FileUploadViewModel>(viewResult.Model);
+        var vm = (FileUploadViewModel)viewResult.Model!;
+        Assert.Equal(expectedFiles, vm.FileRecords);
     }
 
     [Fact]
@@ -120,15 +122,9 @@ public class FileIntakeControllerTests : ControllerTestBase
             .ReturnsAsync(new FileProcessingResult()
                 {
                     success = true,
-                    FileRecord = new FileRecord { Id = 123, FileName = "test" },
+                    FileRecord = new FileRecord { Id = expectedId, FileName = "test" },
                     SavedToDatabase = true
                 });
-
-        // Mock service to return record with Id from GetFileByIdAsync
-        // _fileIntakeServiceMock
-        //     .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()))
-        //     .Callback<FileRecord>(f => f.Id = expectedId)
-        //     .Returns(Task.CompletedTask);
 
         // Act
         var result = await _controller.Upload(formFile);
@@ -226,8 +222,6 @@ public class FileIntakeControllerTests : ControllerTestBase
         Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
         Assert.Null(redirectResult.ControllerName);
         Assert.Equal(errorMessage, _controller.TempData["Error"]);
-
-        _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Never);
     }
 
     [Fact]
@@ -281,13 +275,6 @@ public class FileIntakeControllerTests : ControllerTestBase
                     success = false,
                     ErrorMessage = errorMessage
                 });
-        // _fileIntakeServiceMock
-        //     .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()))
-        //     .ThrowsAsync(new InvalidOperationException("Error uploading file: "));
-
-        // _fileIntakeServiceMock
-        //     .Setup(s => s.GetRecentFilesAsync(It.IsAny<int>(), It.IsAny<string>()))
-        //     .ReturnsAsync(new List<FileRecord>());
 
         // Act
         var result = await _controller.Upload(uploadedFile);
