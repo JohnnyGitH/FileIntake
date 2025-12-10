@@ -4,6 +4,7 @@ using FileIntake.Interfaces;
 using FileIntake.Models;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using UglyToad.PdfPig.Core;
 using static TestHelpers;
 
 namespace FileIntake.Tests;
@@ -110,11 +111,10 @@ public class FileProcessingServiceTests
             .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()));
 
         // Act
-        var result = await _service.ProcessFile(invalidFormFile,id);
+        var ex = await Assert.ThrowsAsync<FileProcessingException>(()=> _service.ProcessFile(invalidFormFile,id));
 
         // Assert
-        Assert.False(result.success);
-        Assert.False(result.SavedToDatabase);
-        Assert.Contains(errorMessage, result.ErrorMessage);
+        Assert.IsType<PdfDocumentFormatException>(ex.InnerException);
+        Assert.Contains(errorMessage, ex.Message);
     }
 }
