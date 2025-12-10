@@ -33,6 +33,8 @@ public class FileIntakeControllerTests : ControllerTestBase
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.IsType<FileUploadViewModel>(viewResult.Model);
+        var vm = (FileUploadViewModel)viewResult.Model!;
+        Assert.Equal(expectedFiles, vm.FileRecords);
     }
 
     [Fact]
@@ -103,6 +105,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         var stream = new MemoryStream(pdfBytes);
         var expectedId = 123;
         var successMessage = "File uploaded successfully.";
+        var fileProcessingResult = 
 
         PdfTestHelper.SaveMinimalPdfTo(pdfPath);
 
@@ -114,11 +117,14 @@ public class FileIntakeControllerTests : ControllerTestBase
             ContentType = "application/pdf"
         };
 
-        // Mock service to return record with Id from GetFileByIdAsync
-        _fileIntakeServiceMock
-            .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()))
-            .Callback<FileRecord>(f => f.Id = expectedId)
-            .Returns(Task.CompletedTask);
+        _fileProcessingServiceMock
+            .Setup(s => s.ProcessFile(It.IsAny<IFormFile>(), It.IsAny<int>()))
+            .ReturnsAsync(new FileProcessingResult()
+                {
+                    success = true,
+                    FileRecord = new FileRecord { Id = expectedId, FileName = "test" },
+                    SavedToDatabase = true
+                });
 
         // Act
         var result = await _controller.Upload(formFile);
@@ -131,7 +137,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         Assert.Equal(successMessage, _controller.TempData["Success"]);
         Assert.Equal(expectedId.ToString(), _controller.TempData["UploadedFileId"]);
 
-        _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Once);
+        _fileProcessingServiceMock.Verify(s =>s.ProcessFile(It.IsAny<IFormFile>(), It.IsAny<int>()), Times.Once);
     }
 
     [Fact]
@@ -170,6 +176,14 @@ public class FileIntakeControllerTests : ControllerTestBase
         var uploadedFile = CreateMockPDFFile(fileName, true);
         var nullFile = (IFormFile)null;
 
+        _fileProcessingServiceMock
+            .Setup(s => s.ProcessFile(It.IsAny<IFormFile>(), It.IsAny<int>()))
+            .ReturnsAsync(new FileProcessingResult
+                {
+                    success = false,
+                    ErrorMessage = "No file selected for upload."
+                });
+
         // Act
         var result = await _controller.Upload(nullFile);
 
@@ -180,7 +194,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         Assert.Null(redirectResult.ControllerName);
         Assert.Equal(errorMessage, _controller.TempData["Error"]);
 
-        _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Never);
+        _fileProcessingServiceMock.Verify(s =>s.ProcessFile(It.IsAny<IFormFile>(), It.IsAny<int>()), Times.Once);
     }
 
     [Fact]
@@ -191,6 +205,14 @@ public class FileIntakeControllerTests : ControllerTestBase
         var fileName = "fileA";
         var uploadedFile = CreateMockPDFFile(fileName, true);
 
+        _fileProcessingServiceMock
+            .Setup(s => s.ProcessFile(It.IsAny<IFormFile>(), It.IsAny<int>()))
+            .ReturnsAsync(new FileProcessingResult
+                {
+                    success = false,
+                    ErrorMessage = "No file selected for upload."
+                });
+
         // Act
         var result = await _controller.Upload(uploadedFile);
 
@@ -200,8 +222,6 @@ public class FileIntakeControllerTests : ControllerTestBase
         Assert.Equal(nameof(FileIntakeController.Index), redirectResult.ActionName);
         Assert.Null(redirectResult.ControllerName);
         Assert.Equal(errorMessage, _controller.TempData["Error"]);
-
-        _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Never);
     }
 
     [Fact]
@@ -245,16 +265,16 @@ public class FileIntakeControllerTests : ControllerTestBase
         var errorMessage = "Error uploading file.";
         var uploadedFileId = 99;
         var fileName = "fileA";
-        var uploadedFile = TestHelpers.CreateMockPDFFile(fileName);
+        var uploadedFile = CreateMockPDFFile(fileName);
 
         // Mock service to return record with Id from GetFileByIdAsync
-        _fileIntakeServiceMock
-            .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()))
-            .ThrowsAsync(new InvalidOperationException("Error uploading file: "));
-
-        _fileIntakeServiceMock
-            .Setup(s => s.GetRecentFilesAsync(It.IsAny<int>(), It.IsAny<string>()))
-            .ReturnsAsync(new List<FileRecord>());
+        _fileProcessingServiceMock
+            .Setup(s => s.ProcessFile(It.IsAny<IFormFile>(), It.IsAny<int>()))
+            .ReturnsAsync(new FileProcessingResult
+                {
+                    success = false,
+                    ErrorMessage = errorMessage
+                });
 
         // Act
         var result = await _controller.Upload(uploadedFile);
@@ -266,6 +286,6 @@ public class FileIntakeControllerTests : ControllerTestBase
         Assert.Null(redirectResult.ControllerName);
         Assert.Equal(errorMessage, _controller.TempData["Error"]);
 
-        _fileIntakeServiceMock.Verify(s =>s.AddFileAsync(It.IsAny<FileRecord>()), Times.Once);
+        _fileProcessingServiceMock.Verify(s =>s.ProcessFile(It.IsAny<IFormFile>(), It.IsAny<int>()), Times.Once);
     }
 }

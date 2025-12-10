@@ -38,6 +38,7 @@ public class Program
         // .AddRoles<IdentityRole>() // Uncomment when I implement roles
 
         builder.Services.AddScoped<IFileIntakeService, FileIntakeService>();
+        builder.Services.AddScoped<IFileProcessingService, FileProcessingService>();
 
         // Add MVC/View Services
         builder.Services.AddControllersWithViews();
