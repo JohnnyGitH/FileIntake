@@ -117,4 +117,36 @@ public class FileProcessingServiceTests
         Assert.IsType<PdfDocumentFormatException>(ex.InnerException);
         Assert.Contains(errorMessage, ex.Message);
     }
+
+    [Fact]
+    public async Task FileProcessingService_ProcessFile_AddFileAsyncFailException()
+    {
+        // Arrange
+        byte[] pdfBytes = PdfTestHelper.CreateMinimalPdf();
+        var stream = new MemoryStream(pdfBytes);
+        var id = 123;
+        var errorMessage = "Error uploading file: ";
+        var fileIntakeErrorMessage = "Database insert failed";
+        var fileName = "Sample1.pdf";
+        var formFile = new FormFile(stream, 0, pdfBytes.Length, "file", fileName)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "application/pdf"
+        };
+
+        _fileIntakeServiceMock
+            .Setup(s => s.AddFileAsync(It.IsAny<FileRecord>()))
+            .ThrowsAsync(new Exception(fileIntakeErrorMessage));
+
+        // Act
+        var result = await  _service.ProcessFile(formFile,id);
+
+        // Assert
+        Assert.IsType<FileProcessingResult>(result);
+        Assert.False(result.success);
+        Assert.False(result.SavedToDatabase);
+        Assert.Equal(fileName, result.FileRecord.FileName);
+        Assert.Contains(errorMessage, result.ErrorMessage);
+        Assert.Contains(fileIntakeErrorMessage, result.ErrorMessage);
+    }
 }
