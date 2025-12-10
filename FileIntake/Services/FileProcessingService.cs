@@ -99,11 +99,6 @@ public class FileProcessingService : IFileProcessingService
     /// <returns>A byte array from the input <see cref="IFormFile"/></returns>
     private async Task<byte[]> GetByteArrayFromIFormFile(IFormFile file)
     {
-        if(file == null || file.Length == 0)
-        {
-            return Array.Empty<byte>();
-        }
-
         using (var memoryStream = new MemoryStream())
         {
             await file.CopyToAsync(memoryStream);

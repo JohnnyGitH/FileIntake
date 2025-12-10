@@ -19,6 +19,13 @@ public class FileIntakeService : IFileIntakeService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Queries the database for the most recent files that have been uploaded
+    /// based on the count requested and the sorted order
+    /// </summary>
+    /// <param name="count">Number of files requested</param>
+    /// <param name="sortOrder">Sorting of the files requested</param>
+    /// <returns></returns>
     public async Task<List<FileRecord>> GetRecentFilesAsync(int count, string sortOrder)
     {
         var query = _context.Files
@@ -31,6 +38,11 @@ public class FileIntakeService : IFileIntakeService
         return await query.Take(count).ToListAsync();
     }
 
+    /// <summary>
+    /// Gets a file from the database by its id
+    /// </summary>
+    /// <param name="id">Id used to search the database</param>
+    /// <returns></returns>
     public async Task<FileRecord?> GetFileByIdAsync(int id)
     {
         _logger.LogInformation("Fetching file with ID {FileId}", id);
@@ -39,6 +51,11 @@ public class FileIntakeService : IFileIntakeService
             .FirstOrDefaultAsync(f => f.Id == id);
     }
 
+    /// <summary>
+    /// Adds a file to the database
+    /// </summary>
+    /// <param name="file">The file that is to be added to the database</param>
+    /// <returns></returns>
     public async Task AddFileAsync(FileRecord file)
     {
         _logger.LogInformation("Adding new file: {FileName}", file.FileName);

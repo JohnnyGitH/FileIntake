@@ -89,7 +89,8 @@ public class FileIntakeController : Controller
         {
             TempData["Success"] = "File uploaded successfully.";
             TempData["UploadedFileId"] = record.FileRecord.Id.ToString();
-        } else
+        } 
+        else
         {
             TempData["Error"] = $"{record.ErrorMessage}";
         }

@@ -31,6 +31,32 @@ public class ControllerTestBase
     protected readonly IdentityUser TEST_IDENTITY_USER;
     protected UserProfile TEST_USER_PROFILE;
 
+    /// <summary>
+    /// Provides a fully-mocked environment for controller unit tests.
+    ///
+    /// This class centralizes setup for all shared dependencies used across
+    /// controller tests (UserManager, DbContext, TempData, services, HttpContext,
+    /// etc.).  
+    ///
+    /// Why this exists:
+    /// - The Controllers require many tightly-coupled ASP.NET Core components  
+    ///   (UserManager, HttpContext, ClaimsPrincipal, TempData, EF DbContext).  
+    /// - Re-creating that boilerplate in every test file would be repetitive,
+    ///   error-prone, and extremely noisy.
+    /// - This class ensures consistent, realistic controller setup while allowing
+    ///   individual tests to focus strictly on behavior.
+    ///
+    /// What it configures:
+    /// - An in-memory ApplicationDbContext + mocked DbSets for async EF queries  
+    /// - A fully mocked UserManager (including identity claims)  
+    /// - Shared mocks for IFileIntakeService and IFileProcessingService  
+    /// - Working TempData via TempDataDictionary  
+    /// - A valid HttpContext, authenticated user, and controller context  
+    /// - Preconfigured FileIntakeController, HomeController, AccountController, and AIController
+    ///
+    /// Test classes inherit from this base so they get all dependencies pre-wired,
+    /// making each test file dramatically smaller, cleaner, and easier to maintain.
+    /// </summary>
     protected ControllerTestBase()
     {
         // Init consts first
