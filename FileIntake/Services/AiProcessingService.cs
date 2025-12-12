@@ -1,21 +1,27 @@
 using System;
 using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FileIntake.Interfaces;
+using FileIntake.Models.DTO;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FileIntake.Services;
 
 public class AiProcessingService : IAiProcessingService
 {
-    private const string BaseURL = "http://localhost:8000";
-    private const string SUMMARIZE = "/summarize";
+    private const string BaseUrl = "http://localhost:8000";
+    private const string Summarize_Endpoint = "/summarize";
+
     private readonly HttpClient _httpClient;
 
     public AiProcessingService(HttpClient httpClient)
     {
         _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri(BaseUrl);
     }
+    
     public async Task<AiProcessingResult> AiProcessAsync(string prompt, string query)
     {
         if(prompt == null || prompt.IsNullOrEmpty())
@@ -36,22 +42,36 @@ public class AiProcessingService : IAiProcessingService
             };
         }
 
-        // Create the full promp
-        var finalizedPrompt = query + prompt;
+        var finalizedPrompt = $"{query}\n\n{prompt}";
 
-        // Checked parameters, now its time to reach out to the service.
+        var requestDto = new AiRequestDto
+        {
+            Prompt = finalizedPrompt
+        };
+
         try
         {
-            // Logic to connect to the Ai microservice
-            _httpClient.BaseAddress = new Uri(BaseURL+SUMMARIZE);
+            var jsonContent = JsonSerializer.Serialize(requestDto);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(Summarize_Endpoint, content);
 
+            if (!response.IsSuccessStatusCode)
+            {
+                return new AiProcessingResult
+                {
+                    success = false,
+                    ErrorMessage = "Ai service returned a failed status of: "+ response.StatusCode
+                };
+            }
 
-            // I need to JSON serialize the finalized prompt, newtonsoft?
-            // Should this step be in its own try catch for serialization?
+            var returnedJson = await response.Content.ReadAsStringAsync();
+            var aiResponse = JsonSerializer.Deserialize<AiResponseDto>(returnedJson);
 
-            // I need to add that serialized content to the request
-
-            // See what I get back?
+            return new AiProcessingResult
+            {
+                success = true,
+                aiResponse = aiResponse?.Result
+            };
         }
         catch( Exception ex)
         {
@@ -61,11 +81,5 @@ public class AiProcessingService : IAiProcessingService
                 ErrorMessage = "Connecting to ai service failed " + ex,
             };
         }
-
-        return new AiProcessingResult
-        {
-            success = true,
-            aiResponse = "placeholder for variable to be returned from service"
-        };
     }
 }
