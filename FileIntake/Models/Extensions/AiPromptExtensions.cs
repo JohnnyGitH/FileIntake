@@ -6,8 +6,16 @@ using FileIntake.Models.Enums;
 
 namespace FileIntake.Models.Extensions;
 
+/// <summary>
+/// Extension methods for <see cref="AiQueryType"/> that provide access
+/// to metadata defined via custom attributes.
+/// </summary>
 public static class AiQueryTypeExtensions
 {
+    /// <summary>
+    /// Retrieves the AI system prompt associated with the given ai query type.
+    /// Throws if the enum value is missing required prompt metadata.
+    /// </summary>
     public static string GetPrompt(this AiQueryType queryType)
     {
         // Get the enum member from AiQueryType
