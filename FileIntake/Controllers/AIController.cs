@@ -7,10 +7,12 @@ namespace FileIntake.Controllers;
 public class AIController : Controller
 {
     private readonly IFileIntakeService _fileIntakeService;
+    private readonly IAiProcessingService _aiProcessingService;
 
-    public AIController(IFileIntakeService fileIntakeService)
+    public AIController(IFileIntakeService fileIntakeService, IAiProcessingService aiProcessingService)
     {
         _fileIntakeService = fileIntakeService;
+        _aiProcessingService = aiProcessingService;
     }
 
     public async Task<IActionResult> Index(int? id)
@@ -29,6 +31,10 @@ public class AIController : Controller
             TempData["Error"] = "Request file does not exist.";
             return RedirectToAction("Index","FileIntake");
         }
+
+        // UI Portion, need to get the enum value to send it as the prompt parameter
+
+        var aiPromptResponse = await _aiProcessingService.AiProcessAsync(file.FileText,);
 
         var model = new AiPageViewModel
         {
