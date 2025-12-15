@@ -34,7 +34,7 @@ public class AIController : Controller
 
         // UI Portion, need to get the enum value to send it as the prompt parameter
 
-        var aiPromptResponse = await _aiProcessingService.AiProcessAsync(file.FileText,);
+        //var aiPromptResponse = await _aiProcessingService.AiProcessAsync(file.FileText,);
 
         var model = new AiPageViewModel
         {
