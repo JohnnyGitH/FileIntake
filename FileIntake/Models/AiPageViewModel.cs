@@ -11,7 +11,7 @@ public class AiPageViewModel
         public string? AIPromptResponse { get; set; }
         public bool HasFile => UploadedFileRecord != null;
 
-        // Dropdown properties for te Ai query
+        // Dropdown properties for the Ai query
         public List<SelectListItem> QueryTypes { get; set; } = new List<SelectListItem>();
         public AiQueryType SelectedQueryType { get; set; }
 

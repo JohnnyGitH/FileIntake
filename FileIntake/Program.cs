@@ -39,7 +39,7 @@ public class Program
 
         builder.Services.AddScoped<IFileIntakeService, FileIntakeService>();
         builder.Services.AddScoped<IFileProcessingService, FileProcessingService>();
-        builder.Services.AddScoped<IAiProcessingService, AiProcessingService>();
+        builder.Services.AddHttpClient<IAiProcessingService, AiProcessingService>();
 
         // Add MVC/View Services
         builder.Services.AddControllersWithViews();

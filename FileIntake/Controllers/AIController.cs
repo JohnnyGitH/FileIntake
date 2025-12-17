@@ -1,9 +1,15 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using FileIntake.Interfaces;
+using FileIntake.Models.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FileIntake.Controllers;
 
+[Authorize]
 public class AIController : Controller
 {
     private readonly IFileIntakeService _fileIntakeService;
@@ -15,7 +21,7 @@ public class AIController : Controller
         _aiProcessingService = aiProcessingService;
     }
 
-    public async Task<IActionResult> Index(int? id)
+    public async Task<IActionResult> Index(int? id, AiPageViewModel vmodel)
     {
         if(id == null)
         {
@@ -32,14 +38,21 @@ public class AIController : Controller
             return RedirectToAction("Index","FileIntake");
         }
 
-        // UI Portion, need to get the enum value to send it as the prompt parameter
-
-        //var aiPromptResponse = await _aiProcessingService.AiProcessAsync(file.FileText,);
+        var query = vmodel.SelectedQueryType.ToString();
 
         var model = new AiPageViewModel
         {
             UploadedFileRecord = file,
+            QueryTypes = Enum.GetValues<AiQueryType>()
+                            .Select(q => new SelectListItem
+                            {
+                                Value = q.ToString(),
+                                Text = q.ToString()
+                            })
+                            .ToList()
         };
+
+        var aiPromptResponse = await _aiProcessingService.AiProcessAsync(file.FileText, query);
 
         return View(model);
     }

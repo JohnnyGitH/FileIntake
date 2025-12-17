@@ -21,10 +21,10 @@ public class AiProcessingService : IAiProcessingService
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri(BaseUrl);
     }
-    
-    public async Task<AiProcessingResult> AiProcessAsync(string prompt, string query)
+
+    public async Task<AiProcessingResult> AiProcessAsync(string text, string query)
     {
-        if(prompt == null || prompt.IsNullOrEmpty())
+        if(text == null || text.IsNullOrEmpty())
         {
             return new AiProcessingResult
             {
@@ -42,7 +42,7 @@ public class AiProcessingService : IAiProcessingService
             };
         }
 
-        var finalizedPrompt = $"{query}\n\n{prompt}";
+        var finalizedPrompt = $"{query}\n\n{text}";
 
         var requestDto = new AiRequestDto
         {
