@@ -24,6 +24,7 @@ public class AiProcessingService : IAiProcessingService
 
     public async Task<AiProcessingResult> AiProcessAsync(string text, string query)
     {
+        Console.WriteLine("Inside AiProcessingService AiProcessAsync method");
         if(text == null || text.IsNullOrEmpty())
         {
             return new AiProcessingResult
@@ -46,17 +47,20 @@ public class AiProcessingService : IAiProcessingService
 
         var requestDto = new AiRequestDto
         {
-            Prompt = finalizedPrompt
+            Text = finalizedPrompt
         };
 
         try
         {
-            var jsonContent = JsonSerializer.Serialize(requestDto);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync(Summarize_Endpoint, content);
+            Console.WriteLine("Inside AiProcessingService AiProcessAsync method - TRY");
+            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            var jsonContent = JsonSerializer.Serialize(requestDto, options);
+            var request = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(Summarize_Endpoint, request);
 
             if (!response.IsSuccessStatusCode)
             {
+                Console.WriteLine("Inside AiProcessingService AiProcessAsync method - TRY - FAILED");
                 return new AiProcessingResult
                 {
                     success = false,
@@ -66,11 +70,12 @@ public class AiProcessingService : IAiProcessingService
 
             var returnedJson = await response.Content.ReadAsStringAsync();
             var aiResponse = JsonSerializer.Deserialize<AiResponseDto>(returnedJson);
+            Console.WriteLine("Response From Python Service: "+ aiResponse.Summary);
 
             return new AiProcessingResult
             {
                 success = true,
-                aiResponse = aiResponse?.Result
+                aiResponse = aiResponse?.Summary
             };
         }
         catch( Exception ex)
