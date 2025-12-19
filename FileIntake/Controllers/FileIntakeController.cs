@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using FileIntake.Data;
 using FileIntake.Interfaces;
 using FileIntake.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FileIntake.Controllers;
 
+[Authorize]
 public class FileIntakeController : Controller
 {
     private readonly IFileIntakeService _fileIntakeService;

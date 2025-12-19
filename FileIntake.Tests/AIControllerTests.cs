@@ -10,12 +10,17 @@ public class AIControllerTests : ControllerTestBase
     public void Index_AIController_ViewResult()
     {
         // Arrange
+        AiPageViewModel vmodel = new AiPageViewModel
+        {
+            
+        };
+
         var file = _fileIntakeServiceMock
             .Setup(s => s.GetFileByIdAsync(It.IsAny<int>()))
             .ReturnsAsync(new FileRecord{ Id = 1, FileName="test.pdf"});
 
         // Act
-        var result = _aiController.Index(1);
+        var result = _aiController.Index(1,vmodel);
 
         // Assert
         Assert.IsType<Task<IActionResult>>(result);

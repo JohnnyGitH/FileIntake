@@ -28,7 +28,7 @@ public class FileIntakeControllerTests : ControllerTestBase
 
         // Act + Assert
         var sortOrder = "name_desc";
-        var result = await _controller.Index("name_desc");
+        var result = await _controller.Index(sortOrder);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
