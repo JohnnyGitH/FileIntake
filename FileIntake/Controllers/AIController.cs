@@ -61,7 +61,8 @@ public class AIController : Controller
     public async Task<IActionResult> Index(AiPageViewModel vmodel)
     {
         Console.WriteLine("Inside AiController POST Index Action method");
-        if(vmodel.UploadedFileRecord?.FileText == null || vmodel.UploadedFileRecord.FileText?.Length == 0)
+        
+        if(vmodel.UploadedFileRecord is null || string.IsNullOrWhiteSpace(vmodel.UploadedFileRecord.FileText))
         {
             TempData["Error"] = "Request file does not exist.";
             return RedirectToAction("Index","FileIntake");

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using FileIntake.Data;
 using FileIntake.Interfaces;
@@ -85,17 +86,16 @@ public class FileIntakeController : Controller
 
         var userId = userProfile.Id;
 
-        var record = await _fileProcessingService.ProcessFile(file, userId);
+        var record = await _fileProcessingService.ProcessFile(file, userId) ?? throw new InvalidOperationException("Unable to process file");
 
-        if (record.success)
-        {
-            TempData["Success"] = "File uploaded successfully.";
-            TempData["UploadedFileId"] = record.FileRecord.Id.ToString();
-        } 
-        else
+        if (!record.success || record.FileRecord is null)
         {
             TempData["Error"] = $"{record.ErrorMessage}";
-        }
+            return RedirectToAction(nameof(Index));
+        } 
+
+        TempData["Success"] = "File uploaded successfully.";
+        TempData["UploadedFileId"] = record.FileRecord.Id.ToString();
 
         return RedirectToAction(nameof(Index));
     }
