@@ -69,13 +69,22 @@ public class AiProcessingService : IAiProcessingService
             }
 
             var returnedJson = await response.Content.ReadAsStringAsync();
-            var aiResponse = JsonSerializer.Deserialize<AiResponseDto>(returnedJson);
+            var aiResponse = JsonSerializer.Deserialize<AiResponseDto>(returnedJson, options);
             Console.WriteLine("Response From Python Service: "+ aiResponse.Summary);
+
+            if (string.IsNullOrWhiteSpace(aiResponse.Summary))
+            {
+                return new AiProcessingResult
+                {
+                    success = false,
+                    ErrorMessage = "AI response was empty or invalid."
+                };
+            }
 
             return new AiProcessingResult
             {
                 success = true,
-                aiResponse = aiResponse?.Summary
+                aiResponse = aiResponse.Summary
             };
         }
         catch( Exception ex)
