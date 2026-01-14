@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Json;
 using FileIntake.Services;
 
-namespace FileIntake.Test;
+namespace FileIntake.Tests;
 
 public class AiProcessingServiceTests
 {
@@ -128,11 +128,7 @@ public class AiProcessingServiceTests
 
         var httpClient = HttpClientMockFactory.Create(
             statusCode: inputStatusCode,
-            responseBody: responseJson,
-            assertRequest: request =>
-            {
-                var body = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
-            });
+            responseBody: responseJson);
             
         var service = new AiProcessingService(httpClient);
 
@@ -152,11 +148,7 @@ public class AiProcessingServiceTests
 
         var httpClient = HttpClientMockFactory.Create(
             statusCode: HttpStatusCode.OK,
-            responseBody: responseJson,
-            assertRequest: request =>
-            {              
-                var body = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
-            });
+            responseBody: responseJson);
             
         var service = new AiProcessingService(httpClient);
 
@@ -176,11 +168,7 @@ public class AiProcessingServiceTests
 
         var httpClient = HttpClientMockFactory.Create(
             statusCode: HttpStatusCode.OK,
-            responseBody: responseJson,
-            assertRequest: request =>
-            {              
-                var body = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
-            });
+            responseBody: responseJson);
             
         var service = new AiProcessingService(httpClient);
 
@@ -190,5 +178,21 @@ public class AiProcessingServiceTests
         // Assert
         Assert.False(result.success, result.ErrorMessage);
         Assert.Equal("AI response was empty or invalid.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task AiProcessingService_AiProcessAsync_PostAsyncException_Failure()
+    {
+        // Arrange
+        var httpClient = HttpClientMockFactory.CreateThrowing(new HttpRequestException("Blow Up"));
+            
+        var service = new AiProcessingService(httpClient);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+
+        // Assert
+        Assert.False(result.success, result.ErrorMessage);
+        Assert.Contains("Connecting to ai service failed System.Net.Http.HttpRequestException: Blow Up", result.ErrorMessage);
     }
 }
