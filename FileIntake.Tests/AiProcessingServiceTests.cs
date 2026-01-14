@@ -80,7 +80,7 @@ public class AiProcessingServiceTests
         Assert.Equal("Invalid or empty prompt, please enter another", result.ErrorMessage);
     }
 
-        [Fact]
+    [Fact]
     public async Task AiProcessingService_AiProcessAsync_EmptyQuery_ReturnsFailure_DoesNotCallHTTP()
     {
         // Arrange
@@ -116,5 +116,77 @@ public class AiProcessingServiceTests
         Assert.False(result.success, result.ErrorMessage);
         Assert.False(string.IsNullOrWhiteSpace(result.ErrorMessage));
         Assert.Equal("Invalid or empty query, please select a query", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task AiProcessingService_AiProcessAsync_ResponseFailureCode_BadRequest()
+    {
+        // Arrange
+        var responseJson = "{\"summary\":\"hello from ai\"}";
+
+        var httpClient = HttpClientMockFactory.Create(
+            statusCode: HttpStatusCode.BadRequest,
+            responseBody: responseJson,
+            assertRequest: request =>
+            {
+                var body = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+            });
+            
+        var service = new AiProcessingService(httpClient);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+
+        // Assert
+        Assert.False(result.success, result.ErrorMessage);
+        Assert.Equal("Ai service returned a failed status of: BadRequest", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task AiProcessingService_AiProcessAsync_ResponseFailureCode_Forbidden()
+    {
+        // Arrange
+        var responseJson = "{\"summary\":\"hello from ai\"}";
+
+        var httpClient = HttpClientMockFactory.Create(
+            statusCode: HttpStatusCode.Forbidden,
+            responseBody: responseJson,
+            assertRequest: request =>
+            {
+                var body = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+            });
+            
+        var service = new AiProcessingService(httpClient);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+
+        // Assert
+        Assert.False(result.success, result.ErrorMessage);
+        Assert.Equal("Ai service returned a failed status of: Forbidden", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task AiProcessingService_AiProcessAsync_AiResponseSummary_Null()
+    {
+        // Arrange
+        var responseJson = "{}";
+
+        var httpClient = HttpClientMockFactory.Create(
+            statusCode: HttpStatusCode.OK,
+            responseBody: responseJson,
+            assertRequest: request =>
+            {              
+                var body = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+            });
+            
+        var service = new AiProcessingService(httpClient);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+
+        // Assert
+        Assert.False(result.success, result.ErrorMessage);
+        Assert.Equal("AI response was empty or invalid.", result.ErrorMessage);
     }
 }
