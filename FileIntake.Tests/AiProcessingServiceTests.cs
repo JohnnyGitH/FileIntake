@@ -79,4 +79,42 @@ public class AiProcessingServiceTests
         Assert.False(string.IsNullOrWhiteSpace(result.ErrorMessage));
         Assert.Equal("Invalid or empty prompt, please enter another", result.ErrorMessage);
     }
+
+        [Fact]
+    public async Task AiProcessingService_AiProcessAsync_EmptyQuery_ReturnsFailure_DoesNotCallHTTP()
+    {
+        // Arrange
+        var httpClient = HttpClientMockFactory.CreateThrowing(
+            new Exception("HTTP should not be called for invalid input")
+        );
+            
+        var service = new AiProcessingService(httpClient);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", "");
+
+        // Assert
+        Assert.False(result.success, result.ErrorMessage);
+        Assert.False(string.IsNullOrWhiteSpace(result.ErrorMessage));
+        Assert.Equal("Invalid or empty query, please select a query", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task AiProcessingService_AiProcessAsync_NullQuery_ReturnsFailure_DoesNotCallHTTP()
+    {
+        // Arrange
+        var httpClient = HttpClientMockFactory.CreateThrowing(
+            new Exception("HTTP should not be called for invalid input")
+        );
+            
+        var service = new AiProcessingService(httpClient);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", null!);
+
+        // Assert
+        Assert.False(result.success, result.ErrorMessage);
+        Assert.False(string.IsNullOrWhiteSpace(result.ErrorMessage));
+        Assert.Equal("Invalid or empty query, please select a query", result.ErrorMessage);
+    }
 }
