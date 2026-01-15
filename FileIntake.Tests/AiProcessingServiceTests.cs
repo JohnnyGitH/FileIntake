@@ -250,5 +250,6 @@ public class AiProcessingServiceTests
         // Assert
         Assert.False(result.success, result.ErrorMessage);
         Assert.Contains("Connecting to ai service failed System.Net.Http.HttpRequestException: Blow Up", result.ErrorMessage);
+        Assert.False(result.IsResponseUpdated);
     }
 }
