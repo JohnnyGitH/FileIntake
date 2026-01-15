@@ -121,7 +121,7 @@ public class AiProcessingServiceTests
     [Theory]
     [InlineData(HttpStatusCode.BadRequest)]
     [InlineData(HttpStatusCode.Forbidden)]
-    public async Task AiProcessingService_AiProcessAsync_ResponseFailureCode_BadRequest(HttpStatusCode inputStatusCode)
+    public async Task AiProcessingService_AiProcessAsync_ResponseFailureCode_ReturnsFailure(HttpStatusCode inputStatusCode)
     {
         // Arrange
         var responseJson = "{\"summary\":\"hello from ai\"}";
@@ -137,7 +137,7 @@ public class AiProcessingServiceTests
 
         // Assert
         Assert.False(result.success, result.ErrorMessage);
-        Assert.Contains("Ai service returned a failed status of: ", result.ErrorMessage);
+        Assert.Equal($"Ai service returned a failed status of: {inputStatusCode}", result.ErrorMessage);
     }
 
     [Fact]
@@ -161,6 +161,26 @@ public class AiProcessingServiceTests
     }
 
     [Fact]
+    public async Task AiProcessingService_AiProcessAsync_AiResponseSummary_MalformedJson()
+    {
+        // Arrange
+        var responseJson = "{not valid json";
+
+        var httpClient = HttpClientMockFactory.Create(
+            statusCode: HttpStatusCode.OK,
+            responseBody: responseJson);
+            
+        var service = new AiProcessingService(httpClient);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+
+        // Assert
+        Assert.False(result.success, result.ErrorMessage);
+        Assert.Contains("Connecting to ai service failed ", result.ErrorMessage);
+    }
+
+    [Fact]
     public async Task AiProcessingService_AiProcessAsync_AiResponseSummary_IsNullOrWhiteSpaceCondition()
     {
         // Arrange
@@ -178,6 +198,42 @@ public class AiProcessingServiceTests
         // Assert
         Assert.False(result.success, result.ErrorMessage);
         Assert.Equal("AI response was empty or invalid.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task AiProcessingService_AiProcessAsync_AiResponseSummary_JsonExplicitNull()
+    {
+        // Arrange
+        var responseJson = "{\"summary\": null }";
+
+        var httpClient = HttpClientMockFactory.Create(
+            statusCode: HttpStatusCode.OK,
+            responseBody: responseJson);
+            
+        var service = new AiProcessingService(httpClient);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+
+        // Assert
+        Assert.False(result.success, result.ErrorMessage);
+        Assert.Equal("AI response was empty or invalid.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task AiProcessingService_AiProcessAsync_TaskCanceled_ReturnsFailure()
+    {
+        // Arrange
+        var httpClient = HttpClientMockFactory.CreateThrowing(new TaskCanceledException("Request timed out"));
+            
+        var service = new AiProcessingService(httpClient);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+
+        // Assert
+        Assert.False(result.success, result.ErrorMessage);
+        Assert.Contains("Connecting to ai service failed ", result.ErrorMessage);
     }
 
     [Fact]
