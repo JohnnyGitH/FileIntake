@@ -4,22 +4,24 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FileIntake.Interfaces;
+using FileIntake.Models.Configuration;
 using FileIntake.Models.DTO;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FileIntake.Services;
 
 public class AiProcessingService : IAiProcessingService
 {
-    private const string BaseUrl = "http://localhost:8000";
     private const string Summarize_Endpoint = "/summarize";
 
     private readonly HttpClient _httpClient;
 
-    public AiProcessingService(HttpClient httpClient)
+    public AiProcessingService(HttpClient httpClient, IOptions<AiServiceOptions> options)
     {
         _httpClient = httpClient;
-        _httpClient.BaseAddress = new Uri(BaseUrl);
+        var baseUrl = options.Value.BaseUrl?.TrimEnd('/');
+        _httpClient.BaseAddress = new Uri(baseUrl!);
     }
 
     public async Task<AiProcessingResult> AiProcessAsync(string text, string query)

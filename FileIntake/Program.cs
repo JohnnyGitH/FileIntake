@@ -12,6 +12,7 @@ using FileIntake.Interfaces;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.DataProtection;
 using System.IO;
+using FileIntake.Models.Configuration;
 
 namespace FileIntake;
 
@@ -48,6 +49,8 @@ public class Program
         builder.Services.AddDataProtection()
             .PersistKeysToFileSystem(new DirectoryInfo("/keys"))
             .SetApplicationName("FileIntakeApp");
+
+        builder.Services.Configure<AiServiceOptions>(builder.Configuration.GetSection("AiService"));
 
         var app = builder.Build();
 

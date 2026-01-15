@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text.Json;
+using FileIntake.Models.Configuration;
 using FileIntake.Services;
+using Microsoft.Extensions.Options;
 
 namespace FileIntake.Tests;
 
@@ -30,8 +32,9 @@ public class AiProcessingServiceTests
                 Assert.Contains("Summarize", sentText!);
                 Assert.Contains("my pdf text", sentText!);
             });
-            
-        var service = new AiProcessingService(httpClient);
+
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});     
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", "Summarize");
@@ -49,8 +52,9 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.CreateThrowing(
             new Exception("HTTP should not be called for invalid input")
         );
-            
-        var service = new AiProcessingService(httpClient);
+        
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync("", "Summarize");
@@ -68,8 +72,9 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.CreateThrowing(
             new Exception("HTTP should not be called for invalid input")
         );
-            
-        var service = new AiProcessingService(httpClient);
+        
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync(null!, "Summarize");
@@ -87,8 +92,9 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.CreateThrowing(
             new Exception("HTTP should not be called for invalid input")
         );
-            
-        var service = new AiProcessingService(httpClient);
+        
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", "");
@@ -106,8 +112,9 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.CreateThrowing(
             new Exception("HTTP should not be called for invalid input")
         );
-            
-        var service = new AiProcessingService(httpClient);
+        
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", null!);
@@ -129,8 +136,9 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.Create(
             statusCode: inputStatusCode,
             responseBody: responseJson);
-            
-        var service = new AiProcessingService(httpClient);
+        
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", "Summarize");
@@ -149,8 +157,9 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.Create(
             statusCode: HttpStatusCode.OK,
             responseBody: responseJson);
-            
-        var service = new AiProcessingService(httpClient);
+        
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", "Summarize");
@@ -169,8 +178,8 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.Create(
             statusCode: HttpStatusCode.OK,
             responseBody: responseJson);
-            
-        var service = new AiProcessingService(httpClient);
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", "Summarize");
@@ -189,8 +198,9 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.Create(
             statusCode: HttpStatusCode.OK,
             responseBody: responseJson);
-            
-        var service = new AiProcessingService(httpClient);
+
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});   
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", "Summarize");
@@ -209,8 +219,9 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.Create(
             statusCode: HttpStatusCode.OK,
             responseBody: responseJson);
-            
-        var service = new AiProcessingService(httpClient);
+        
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});   
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", "Summarize");
@@ -225,8 +236,9 @@ public class AiProcessingServiceTests
     {
         // Arrange
         var httpClient = HttpClientMockFactory.CreateThrowing(new TaskCanceledException("Request timed out"));
-            
-        var service = new AiProcessingService(httpClient);
+        
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", "Summarize");
@@ -241,8 +253,9 @@ public class AiProcessingServiceTests
     {
         // Arrange
         var httpClient = HttpClientMockFactory.CreateThrowing(new HttpRequestException("Blow Up"));
-            
-        var service = new AiProcessingService(httpClient);
+        
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
+        var service = new AiProcessingService(httpClient, options);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", "Summarize");
