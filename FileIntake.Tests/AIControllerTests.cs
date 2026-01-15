@@ -115,4 +115,27 @@ public class AIControllerTests : ControllerTestBase
         Assert.Equal("FileIntake", redirect.ControllerName);
         Assert.Equal("Request file does not exist.", _aiController.TempData["Error"]);
     }
+
+    [Fact]
+    public async Task AIController_PostIndex_AiProcessingServiceFails_CatchAndSetTempDataReturnView()
+    {
+        // Arrange
+        _aiProcessingServiceMock
+            .Setup(s => s.AiProcessAsync(It.IsAny<string>(),It.IsAny<string>()))
+            .ThrowsAsync(new Exception("boom"));
+
+        var vModel = new AiPageViewModel
+        {
+            UploadedFileRecord = new FileRecord { Id = 1, FileName = "test.pdf", FileText = "hello this is pdf"},
+            SelectedQueryType = AiQueryType.Summarize
+        };
+
+        // Act
+        var result = await _aiController.Index(vModel);
+
+        // Assert
+        var view = Assert.IsType<ViewResult>(result);
+        Assert.NotNull(_aiController.TempData["Error"]);
+        Assert.Contains("Ai Processing Failed. Exception :", _aiController.TempData["Error"]!.ToString());
+    }
 }
