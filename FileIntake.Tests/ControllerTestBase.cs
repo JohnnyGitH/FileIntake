@@ -19,6 +19,7 @@ public class ControllerTestBase
     protected readonly Mock<ApplicationDbContext> _context;
     protected readonly Mock<IFileIntakeService> _fileIntakeServiceMock;
     protected readonly Mock<IFileProcessingService> _fileProcessingServiceMock;
+    protected readonly Mock<IAiProcessingService> _aiProcessingServiceMock;
     protected readonly Mock<UserManager<IdentityUser>> _userManagerMock;
     protected readonly HomeController _homeController;
     protected readonly AccountController _accountController;
@@ -86,6 +87,7 @@ public class ControllerTestBase
 
         _fileIntakeServiceMock = new Mock<IFileIntakeService>();
         _fileProcessingServiceMock = new Mock<IFileProcessingService>();
+        _aiProcessingServiceMock = new Mock<IAiProcessingService>();
         _context = new Mock<ApplicationDbContext>(options);
 
         var _userStoreMock = new Mock<IUserStore<IdentityUser>>();
@@ -153,7 +155,10 @@ public class ControllerTestBase
             _context.Object
         );
 
-        _aiController = new AIController(_fileIntakeServiceMock.Object);
+        _aiController = new AIController(
+            _fileIntakeServiceMock.Object, 
+            _aiProcessingServiceMock.Object
+        );
         _aiController.ControllerContext = _controller.ControllerContext;
 
 
@@ -162,6 +167,11 @@ public class ControllerTestBase
         _controller.TempData = new TempDataDictionary(
             _controller.HttpContext, // Use the HttpContext we just set up
             mockTempDataProvider.Object // Provide the necessary mock service
+        );
+
+        _aiController.TempData = new TempDataDictionary(
+            _aiController.HttpContext,
+            mockTempDataProvider.Object
         );
     }
 }

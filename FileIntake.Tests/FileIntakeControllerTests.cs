@@ -28,7 +28,7 @@ public class FileIntakeControllerTests : ControllerTestBase
 
         // Act + Assert
         var sortOrder = "name_desc";
-        var result = await _controller.Index("name_desc");
+        var result = await _controller.Index(sortOrder);
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -152,7 +152,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         // Mock UserManager
         _userManagerMock
             .Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-            .ReturnsAsync((IdentityUser)null);
+            .ReturnsAsync((IdentityUser)null!);
 
         // Act
         var result = await _controller.Upload(uploadedFile);
@@ -174,7 +174,7 @@ public class FileIntakeControllerTests : ControllerTestBase
         var errorMessage = "No file selected for upload.";
         var fileName = "fileA";
         var uploadedFile = CreateMockPDFFile(fileName, true);
-        var nullFile = (IFormFile)null;
+        var nullFile = (IFormFile)null!;
 
         _fileProcessingServiceMock
             .Setup(s => s.ProcessFile(It.IsAny<IFormFile>(), It.IsAny<int>()))
@@ -263,7 +263,6 @@ public class FileIntakeControllerTests : ControllerTestBase
     {
         // Arrange
         var errorMessage = "Error uploading file.";
-        var uploadedFileId = 99;
         var fileName = "fileA";
         var uploadedFile = CreateMockPDFFile(fileName);
 

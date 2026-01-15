@@ -7,24 +7,44 @@
     <h1 class="display-4">AI Text Manipulation</h1>
     <p class="lead">Analyze PDF documents with AI.</p>
 </div>
-<div class="row">
-    <div class="col-md-6">
-        <label for="fileInput">Original File Contents</label>
-
-        @if(@Model.UploadedFileRecord == null)
-        {
-            <textarea name="fileInput" class="form-control border border-dark shadow-sm" rows="20">No File Contents</textarea>
-        }
-
-        <textarea name="fileInput" class="form-control border border-dark shadow-sm" rows="20">@Model.UploadedFileRecord?.FileText</textarea>
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-info mt-3">
+            @TempData["Error"]
+        </div>
+    } 
+<form asp-action="Index" method="post">
+    <input type="hidden" asp-for="UploadedFileRecord.Id"/>
+    <div class="row">
+        <div class="col-md-6">
+            <label for="fileInput">Original File Contents</label>
+            <textarea asp-for="UploadedFileRecord.FileText"
+                        class="form-control border border-dark shadow-sm" 
+                        rows="20"
+                        placeholder="No File Contents"></textarea>
+        </div>
+        <div class="col-md-6 ">
+            <label for="AIInput">AI Generated Output</label>
+            <textarea asp-for="AIPromptResponse"
+                        class="form-control border border-dark shadow-sm" 
+                        rows="20"
+                        readonly></textarea>
+        </div>
     </div>
-    <div class="col-md-6 ">
-        <label for="AIInput">AI Generated Output</label>
-        <textarea name="AIInput" class="form-control border border-dark shadow-sm" rows="20"></textarea>
+    <div class="d-flex justify-content-end">
+        <div class="row justify-content-end mt-3">
+            <select 
+                asp-for="SelectedQueryType" 
+                asp-items="@Model.QueryTypes"
+                class="form-select mr-2">
+            </select>
+            <button 
+                type="submit" 
+                class="btn btn-primary flex-fill">Process with AI
+            </button>
+        </div>
     </div>
-</div>
-
+</form>
 <div class="mt-3">
-    <button class="btn btn-primary">Process with AI</button>
     <a asp-controller="FileIntake" asp-action="Index"class="btn btn-secondary">Back to File Intake page</a>
 </div>
