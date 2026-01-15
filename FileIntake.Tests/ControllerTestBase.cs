@@ -168,5 +168,10 @@ public class ControllerTestBase
             _controller.HttpContext, // Use the HttpContext we just set up
             mockTempDataProvider.Object // Provide the necessary mock service
         );
+
+        _aiController.TempData = new TempDataDictionary(
+            _aiController.HttpContext,
+            mockTempDataProvider.Object
+        );
     }
 }
