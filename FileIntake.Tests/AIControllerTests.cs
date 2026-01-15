@@ -21,6 +21,57 @@ public class AIControllerTests : ControllerTestBase
     }
 
     [Fact]
+    public async Task AIController_GetIndex_FileServiceReturnsNull_RedirectsToFileIntakeIndex_SetsTempDataError()
+    {
+        // Arrange 
+        _fileIntakeServiceMock
+            .Setup(s =>s.GetFileByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync((FileRecord)null!);
+
+        var vModel = new AiPageViewModel();
+
+        // Act
+        var result = await _aiController.Index(1, vModel);
+
+        // Assert
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Index", redirect.ActionName);
+        Assert.Equal("FileIntake", redirect.ControllerName);
+        Assert.Equal("Request file does not exist.", _aiController.TempData["Error"]);
+    }
+
+    [Fact]
+    public async Task AIController_GetIndex_FileServiceReturnFile_ReturnsView_WithQueryTypes()
+    {
+        // Arrange 
+        _fileIntakeServiceMock
+            .Setup(s =>s.GetFileByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new FileRecord
+            {
+                Id = 1,
+                FileName = "test.pdf",
+                FileText = "hello file text"
+            });
+
+        var vModel = new AiPageViewModel
+        {
+            SelectedQueryType = AiQueryType.Summarize
+        };
+
+        // Act
+        var result = await _aiController.Index(1, vModel);
+
+        // Assert
+        var view = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<AiPageViewModel>(view.Model);
+
+        Assert.NotNull(model.UploadedFileRecord);
+        Assert.Equal("hello file text", model.UploadedFileRecord.FileText);
+        Assert.NotNull(model.QueryTypes);
+        Assert.True(model.QueryTypes.Count > 0);
+    }
+
+    [Fact]
     public async Task AIController_PostIndex_ValidAiPageViewModel_CallsAiServiceAndReturnsWithResponse()
     {
         // Arrange
@@ -45,7 +96,7 @@ public class AIControllerTests : ControllerTestBase
 
         _aiProcessingServiceMock.Verify(s => s.AiProcessAsync("my pdf text","Summarize"), Times.Once);
     }
-    
+
     [Fact]
     public async Task AIController_PostIndex_InvalidAiPageViewModel_RedirectsToFileIntakeIndex_SetsTempDataError()
     {
