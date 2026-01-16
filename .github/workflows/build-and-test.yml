@@ -2,8 +2,9 @@
 name: ⚙️ .NET CI:Build, Test & Coverage
 
 on:
-  push:
   pull_request:
+  push:
+    branches: [ master ]
 
 jobs:
   build:
