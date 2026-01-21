@@ -1,0 +1,53 @@
+name: 🚀 Deploy to Cloud Run
+
+on:
+ push:
+    branches: ["master"]
+
+jobs:
+ deploy:
+    runs-on: ubuntu-latest
+    permissions:
+        contents: read
+        id-token: write
+    
+    env:
+     PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+     REGION: ${{ vars.GCP_REGION }}
+     AR_REPO: ${{ vars.GCP_AR_REPO }}
+     SERVICE_NAME: ${{ vars.GCP_SERVICE_NAME }}
+
+    steps:
+     - name: 📥 Checkout
+       uses: actions/checkout@v4
+    
+     - name: 🔐 Authenticate to Google Cloud (WIF)
+       uses: google-github-actions/auth@v2
+       with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+     - name: ☁️ Setup gcloud
+       uses: google-github-actions/setup-gcloud@v2
+    
+     - name: Set gcloud project
+       run: gcloud config set project "$PROJECT_ID"
+
+     - name: 🔑 Configure Docker auth for Artifact Registry
+       run: |
+          gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
+
+     - name: 🐳 Build & push image
+       run: |
+          IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/$AR_REPO/fileintake:${{ github.sha }}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+     - name: 🚀 Deploy to Cloud Run
+       run: |
+          gcloud run deploy "$SERVICE_NAME" \
+          --image "$IMAGE" \
+          --region "$REGION" \
+          --platform managed \
+          --allow-unauthenticated
