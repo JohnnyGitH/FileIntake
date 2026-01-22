@@ -48,7 +48,10 @@ public class Program
 
         builder.Services.AddScoped<IFileIntakeService, FileIntakeService>();
         builder.Services.AddScoped<IFileProcessingService, FileProcessingService>();
-        builder.Services.AddHttpClient<IAiProcessingService, AiProcessingService>();
+        builder.Services.AddHttpClient<IAiProcessingService, AiProcessingService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
 
         builder.Services.AddControllersWithViews();
 
@@ -63,6 +66,9 @@ public class Program
             .SetApplicationName("FileIntakeApp");
 
         builder.Services.Configure<AiServiceOptions>(builder.Configuration.GetSection("AiService"));
+
+        var aiBaseUrl = builder.Configuration["AiService:BaseUrl"];
+        Console.WriteLine($"[Startup] AI Service BaseUrl resolved to: {aiBaseUrl}");
 
         var app = builder.Build();
 
