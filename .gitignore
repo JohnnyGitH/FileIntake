@@ -5,6 +5,8 @@ obj/
 *.dll
 *.pdb
 *.env
+.env
+**/.env
 
 # User-specific files
 *.user

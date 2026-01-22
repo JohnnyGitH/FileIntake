@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FileIntake.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 namespace FileIntake.Data;
 
@@ -12,20 +13,23 @@ public static class DbInitializer
     public static async Task Initialize(ApplicationDbContext context, IServiceProvider serviceProvider)
     {
         // Ensure the database is created
-        context.Database.EnsureCreated();
         var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+        var config = serviceProvider.GetRequiredService<IConfiguration>();
+        var resetPasswords = config.GetValue<bool>("RESET_DEMO_PASSWORDS");
 
         await SeedUserAsync(userManager, context,
             email: "johnny@example.com",
             password: "Password123!",
             firstName: "Johnny",
-            lastName: "Cockrem");
+            lastName: "Cockrem",
+            resetPasswords: resetPasswords);
 
         await SeedUserAsync(userManager, context,
             email: "test@example.com",
             password: "Password123!",
             firstName: "test",
-            lastName: "Man");
+            lastName: "Man", 
+            resetPasswords: resetPasswords);
 
         if (!context.UserProfiles.Any(up => up.Email == "pam.beesly@dundermifflin.com"))
         {
@@ -44,7 +48,7 @@ public static class DbInitializer
         await context.SaveChangesAsync();
     }
 
-    private static async Task SeedUserAsync(UserManager<IdentityUser> userManager, ApplicationDbContext context, string email, string password, string firstName, string lastName)
+    private static async Task SeedUserAsync(UserManager<IdentityUser> userManager, ApplicationDbContext context, string email, string password, string firstName, string lastName, bool resetPasswords)
     {
         var existing = await userManager.FindByEmailAsync(email);
 
@@ -96,11 +100,24 @@ public static class DbInitializer
                 await userManager.UpdateAsync(existing);
             }
 
-            // Reset password each startup inside Docker
-            await userManager.RemovePasswordAsync(existing);
-            await userManager.AddPasswordAsync(existing, password);
+            if (resetPasswords)
+            {
+                if (await userManager.HasPasswordAsync(existing))
+                {
+                    var token = await userManager.GeneratePasswordResetTokenAsync(existing);
+                    var resetResult = await userManager.ResetPasswordAsync(existing, token, password);
+                    if (!resetResult.Succeeded)
+                        throw new Exception("Failed to reset password for user: " + email + " | " + string.Join(", ", resetResult.Errors.Select(e => e.Description)));
+                }
+                else
+                {
+                    var addResult = await userManager.AddPasswordAsync(existing, password);
+                    if (!addResult.Succeeded)
+                        throw new Exception("Failed to add password for user: " + email + " | " + string.Join(", ", addResult.Errors.Select(e => e.Description)));
+                }
 
-            Console.WriteLine($"{email} password reset during seeding");
+                Console.WriteLine($"{email} password set/reset during seeding");
+            }
         }
     }
 
