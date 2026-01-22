@@ -53,38 +53,53 @@ This separation keeps the ASP.NET app clean while isolating heavy AI processing 
 
 FileIntake is fully containerized — both the web app and SQL Server run inside Docker.
 
-### 🗂️ Project Structure (Diagram)
 
+## 🚀 CI/CD & Deployment
+
+This service is fully automated using GitHub Actions and Google Cloud:
+
+- **CI**:  
+  - Runs on every pull request  
+  - Executes unit tests with coverage  
+  - Coverage reported to Codecov  
+
+- **CD**:  
+  - Triggered on merge to `master`  
+  - Builds a Docker image  
+  - Pushes to Google Artifact Registry  
+  - Deploys to Google Cloud Run  
+
+- **Security**:  
+  - Uses **Workload Identity Federation (OIDC)**  
+  - No long-lived service account keys  
+  - Least-privilege IAM permissions  
+
+This pipeline ensures all changes are tested, reviewed, and safely deployed to production.
+
+## 🧱 Architecture
+
+```text
+┌────────────┐         ┌──────────────────────────┐
+│ FileIntake │  HTTP   │ AI Liaison Microservice  │
+│ (Main App) ├───────▶│  (FastAPI / Cloud Run)    │
+└────────────┘         └─────────────┬────────────┘
+                                     │
+                                     │ Provider SDKs
+                                     ▼
+                          ┌────────────────────────┐
+                          │ External AI Providers   │
+                          │ (OpenAI / Gemini / etc) │
+                          └────────────────────────┘
 ```
-+----------------------------------------+
-|              FileIntake               |
-|        ASP.NET Core MVC App           |
-|                                        |
-|   - Authentication (Identity)          |
-|   - File Upload UI                     |
-|   - Sends PDFs → AI Microservice       |
-|   - Reads/Writes SQL Server DB         |
-+---------------------+------------------+
-                      |
-                      | REST API Calls
-                      v
-+----------------------------------------+
-|   FileIntake-AIMicroservice-Python     |
-|         FastAPI + AI Models            |
-|   - Receives PDF bytes                 |
-|   - Runs text extraction + LLM         |
-|   - Sends JSON results back            |
-+----------------------------------------+
 
-+----------------------------------------+
-|        SQL Server (Docker)             |
-|   - Identity tables                    |
-|   - File metadata storage              |
-|   - User profiles                      |
-+----------------------------------------+
+The AI Liaison Microservice acts as a boundary between the core application and external AI providers, centralizing authentication, request shaping, and provider-specific logic.
+
+```mermaid
+graph LR
+    A[FileIntake App] -->|HTTP| B[AI Liaison Microservice]
+    B -->|SDK / API| C[OpenAI]
+    B -->|SDK / API| D[Gemini]
 ```
-
----
 
 ## 🛠️ Development Setup
 

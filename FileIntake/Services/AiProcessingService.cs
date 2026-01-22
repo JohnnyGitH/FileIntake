@@ -21,6 +21,10 @@ public class AiProcessingService : IAiProcessingService
     {
         _httpClient = httpClient;
         var baseUrl = options.Value.BaseUrl?.TrimEnd('/');
+        if (string.IsNullOrEmpty(baseUrl))
+        {
+            throw new InvalidOperationException("AiProcessingService: BaseUrl is not configured");
+        }
         _httpClient.BaseAddress = new Uri(baseUrl!);
     }
 
