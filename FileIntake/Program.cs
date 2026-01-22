@@ -21,14 +21,23 @@ public class Program
     public static async Task Main(string[] args)
     {
 
-        // --- STEP 1: Builder Configuration ---
         var builder = WebApplication.CreateBuilder(args);
+        var isDev = builder.Environment.IsDevelopment();
 
         // Register the DbContext (Replace ApplicationDbContext and connection string name)
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).EnableSensitiveDataLogging());
+        if(isDev)
+        {
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).EnableSensitiveDataLogging());
+        }
+        else
+        {
+            // Cloud Run: use writable /tmp
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlite("Data Source=/tmp/fileintake.db"));
+        }
 
-        // Add Identity Services
+        // Identity Services
         builder.Services.AddDefaultIdentity<IdentityUser>(options => 
                 {
                 options.SignIn.RequireConfirmedAccount = false;
@@ -36,18 +45,21 @@ public class Program
                 }  
             )
             .AddEntityFrameworkStores<ApplicationDbContext>();
-        // .AddRoles<IdentityRole>() // Uncomment when I implement roles
 
         builder.Services.AddScoped<IFileIntakeService, FileIntakeService>();
         builder.Services.AddScoped<IFileProcessingService, FileProcessingService>();
         builder.Services.AddHttpClient<IAiProcessingService, AiProcessingService>();
 
-        // Add MVC/View Services
         builder.Services.AddControllersWithViews();
+
+        // --- DataProtectionKeys (Cloud Run-safe) ---
+        var keysPath = isDev ? "/keys" : "/tmp/keys";
+
+        Directory.CreateDirectory(keysPath);
 
         // Add Explicit DataProtection config
         builder.Services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo("/keys"))
+            .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
             .SetApplicationName("FileIntakeApp");
 
         builder.Services.Configure<AiServiceOptions>(builder.Configuration.GetSection("AiService"));
@@ -67,7 +79,6 @@ public class Program
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
-
         app.UseRouting();
 
         // Identity Middleware
@@ -78,22 +89,39 @@ public class Program
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
-        app.MapRazorPages(); // Identity UI pages
+        app.MapRazorPages();
 
+        // --- DB migrate + optional reset + optional seed ---
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
+
             try
             {
-                var serviceProvider = scope.ServiceProvider;
                 var context = services.GetRequiredService<ApplicationDbContext>();
-                await DbInitializer.Initialize(context, serviceProvider);
+
+                var seedDemo = builder.Configuration.GetValue<bool>("SEED_DEMO_DATA");
+                var resetDb = builder.Configuration.GetValue<bool>("RESET_DB_ON_START");
+
+                // Optional: reset for demo runs in Cloud Run
+                if (!isDev && resetDb)
+                {
+                    await context.Database.EnsureDeletedAsync();
+                }
+
+                // Always migrate (you have migrations)
+                await context.Database.MigrateAsync();
+
+                // Seed in dev OR when explicitly enabled
+                if (isDev || seedDemo)
+                {
+                    await DbInitializer.Initialize(context, services);
+                }
             }
             catch (Exception ex)
             {
-                // Log errors or handle them as needed
                 var logger = services.GetRequiredService<ILogger<Program>>();
-                logger.LogError(ex, "An error occurred while seeding the database.");
+                logger.LogError(ex, "An error occurred while initializing the database.");
             }
         }
 

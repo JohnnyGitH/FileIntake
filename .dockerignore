@@ -1,0 +1,8 @@
+.env
+**/.env
+**/*.env
+**/bin
+**/obj
+.git
+.github
+.vscode
