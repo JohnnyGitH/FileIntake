@@ -109,8 +109,18 @@ public class Program
                     await context.Database.EnsureDeletedAsync();
                 }
 
-                // Always migrate (you have migrations)
-                await context.Database.MigrateAsync();
+                var isSqlite = context.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true;
+
+                if (isSqlite)
+                {
+                    // Cloud Run
+                    await context.Database.EnsureCreatedAsync();
+                }
+                else
+                {
+                    // Local development
+                    await context.Database.MigrateAsync();
+                }
 
                 // Seed in dev OR when explicitly enabled
                 if (isDev || seedDemo)
@@ -122,6 +132,7 @@ public class Program
             {
                 var logger = services.GetRequiredService<ILogger<Program>>();
                 logger.LogError(ex, "An error occurred while initializing the database.");
+                throw;
             }
         }
 
