@@ -45,6 +45,7 @@ public class AIController : Controller
         var model = new AiPageViewModel
         {
             UploadedFileRecord = file,
+            SelectedQueryType = vmodel.SelectedQueryType,
             QueryTypes = Enum.GetValues<AiQueryType>()
                             .Select(q => new SelectListItem
                             {
@@ -71,7 +72,7 @@ public class AIController : Controller
         try
         {
             AiProcessingResult aiPromptResponse = new AiProcessingResult();
-            aiPromptResponse = await _aiProcessingService.AiProcessAsync(vmodel.UploadedFileRecord.FileText, vmodel.SelectedQueryType.ToString());
+            aiPromptResponse = await _aiProcessingService.AiProcessAsync(vmodel.UploadedFileRecord.FileText, vmodel.SelectedQueryType);
             Console.WriteLine($"Response : {aiPromptResponse.aiResponse}");
 
             vmodel.AIPromptResponse = aiPromptResponse.aiResponse;

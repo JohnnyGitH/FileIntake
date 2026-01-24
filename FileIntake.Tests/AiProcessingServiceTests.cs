@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using FileIntake.Models.Configuration;
+using FileIntake.Models.Enums;
 using FileIntake.Services;
 using Microsoft.Extensions.Options;
 
@@ -37,7 +38,7 @@ public class AiProcessingServiceTests
         var service = new AiProcessingService(httpClient, options);
 
         // Act
-        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+        var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
 
         // Assert
         Assert.True(result.success, result.ErrorMessage);
@@ -57,7 +58,7 @@ public class AiProcessingServiceTests
         var service = new AiProcessingService(httpClient, options);
 
         // Act
-        var result = await service.AiProcessAsync("", "Summarize");
+        var result = await service.AiProcessAsync("", AiQueryType.Summarize);
 
         // Assert
         Assert.False(result.success, result.ErrorMessage);
@@ -77,7 +78,7 @@ public class AiProcessingServiceTests
         var service = new AiProcessingService(httpClient, options);
 
         // Act
-        var result = await service.AiProcessAsync(null!, "Summarize");
+        var result = await service.AiProcessAsync(null!, AiQueryType.Summarize);
 
         // Assert
         Assert.False(result.success, result.ErrorMessage);
@@ -86,7 +87,7 @@ public class AiProcessingServiceTests
     }
 
     [Fact]
-    public async Task AiProcessingService_AiProcessAsync_EmptyQuery_ReturnsFailure_DoesNotCallHTTP()
+    public async Task AiProcessingService_AiProcessAsync_InvalidQueryType_ReturnsFailure_DoesNotCallHTTP()
     {
         // Arrange
         var httpClient = HttpClientMockFactory.CreateThrowing(
@@ -97,27 +98,7 @@ public class AiProcessingServiceTests
         var service = new AiProcessingService(httpClient, options);
 
         // Act
-        var result = await service.AiProcessAsync("my pdf text", "");
-
-        // Assert
-        Assert.False(result.success, result.ErrorMessage);
-        Assert.False(string.IsNullOrWhiteSpace(result.ErrorMessage));
-        Assert.Equal("Invalid or empty query, please select a query", result.ErrorMessage);
-    }
-
-    [Fact]
-    public async Task AiProcessingService_AiProcessAsync_NullQuery_ReturnsFailure_DoesNotCallHTTP()
-    {
-        // Arrange
-        var httpClient = HttpClientMockFactory.CreateThrowing(
-            new Exception("HTTP should not be called for invalid input")
-        );
-        
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
-        var service = new AiProcessingService(httpClient, options);
-
-        // Act
-        var result = await service.AiProcessAsync("my pdf text", null!);
+        var result = await service.AiProcessAsync("my pdf text", (AiQueryType)999);
 
         // Assert
         Assert.False(result.success, result.ErrorMessage);
@@ -141,7 +122,7 @@ public class AiProcessingServiceTests
         var service = new AiProcessingService(httpClient, options);
 
         // Act
-        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+        var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
 
         // Assert
         Assert.False(result.success, result.ErrorMessage);
@@ -162,7 +143,7 @@ public class AiProcessingServiceTests
         var service = new AiProcessingService(httpClient, options);
 
         // Act
-        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+        var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
 
         // Assert
         Assert.False(result.success, result.ErrorMessage);
@@ -182,7 +163,7 @@ public class AiProcessingServiceTests
         var service = new AiProcessingService(httpClient, options);
 
         // Act
-        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+        var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
 
         // Assert
         Assert.False(result.success, result.ErrorMessage);
@@ -203,7 +184,7 @@ public class AiProcessingServiceTests
         var service = new AiProcessingService(httpClient, options);
 
         // Act
-        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+        var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
 
         // Assert
         Assert.False(result.success, result.ErrorMessage);
@@ -224,7 +205,7 @@ public class AiProcessingServiceTests
         var service = new AiProcessingService(httpClient, options);
 
         // Act
-        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+        var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
 
         // Assert
         Assert.False(result.success, result.ErrorMessage);
@@ -241,7 +222,7 @@ public class AiProcessingServiceTests
         var service = new AiProcessingService(httpClient, options);
 
         // Act
-        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+        var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
 
         // Assert
         Assert.False(result.success, result.ErrorMessage);
@@ -258,7 +239,7 @@ public class AiProcessingServiceTests
         var service = new AiProcessingService(httpClient, options);
 
         // Act
-        var result = await service.AiProcessAsync("my pdf text", "Summarize");
+        var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
 
         // Assert
         Assert.False(result.success, result.ErrorMessage);
