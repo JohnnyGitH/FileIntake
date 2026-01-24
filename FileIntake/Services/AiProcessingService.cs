@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FileIntake.Interfaces;
 using FileIntake.Models.Configuration;
 using FileIntake.Models.DTO;
+using FileIntake.Models.Enums;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -28,7 +29,7 @@ public class AiProcessingService : IAiProcessingService
         _httpClient.BaseAddress = new Uri(baseUrl!);
     }
 
-    public async Task<AiProcessingResult> AiProcessAsync(string text, string query)
+    public async Task<AiProcessingResult> AiProcessAsync(string text, AiQueryType query)
     {
         Console.WriteLine("Inside AiProcessingService AiProcessAsync method");
         if(text == null || text.IsNullOrEmpty())
@@ -40,7 +41,7 @@ public class AiProcessingService : IAiProcessingService
             };
         }
 
-        if(query == null || query.IsNullOrEmpty())
+        if(!Enum.IsDefined(typeof(AiQueryType),query))
         {
             return new AiProcessingResult
             {

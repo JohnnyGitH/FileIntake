@@ -76,7 +76,7 @@ public class AIControllerTests : ControllerTestBase
     {
         // Arrange
         _aiProcessingServiceMock
-            .Setup(s => s.AiProcessAsync(It.IsAny<string>(),It.IsAny<string>()))
+            .Setup(s => s.AiProcessAsync(It.IsAny<string>(),It.IsAny<AiQueryType>()))
             .ReturnsAsync(new AiProcessingResult { success = true, aiResponse = "hello from ai"});
 
         var vModel = new AiPageViewModel
@@ -94,7 +94,7 @@ public class AIControllerTests : ControllerTestBase
 
         Assert.Equal("hello from ai", returnedModel.AIPromptResponse);
 
-        _aiProcessingServiceMock.Verify(s => s.AiProcessAsync("my pdf text","Summarize"), Times.Once);
+        _aiProcessingServiceMock.Verify(s => s.AiProcessAsync("my pdf text",AiQueryType.Summarize), Times.Once);
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public class AIControllerTests : ControllerTestBase
     {
         // Arrange
         _aiProcessingServiceMock
-            .Setup(s => s.AiProcessAsync(It.IsAny<string>(),It.IsAny<string>()))
+            .Setup(s => s.AiProcessAsync(It.IsAny<string>(),It.IsAny<AiQueryType>()))
             .ThrowsAsync(new Exception("boom"));
 
         var vModel = new AiPageViewModel
@@ -137,5 +137,95 @@ public class AIControllerTests : ControllerTestBase
         var view = Assert.IsType<ViewResult>(result);
         Assert.NotNull(_aiController.TempData["Error"]);
         Assert.Contains("Ai Processing Failed. Exception :", _aiController.TempData["Error"]!.ToString());
+    }
+
+    [Fact]
+    public async Task AIController_GetIndex_FileServiceReturnFile_ReturnsView_WithQueryTypeSummarize()
+    {
+        // Arrange 
+        var expected_qType = "Summarize";
+        _fileIntakeServiceMock
+            .Setup(s =>s.GetFileByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new FileRecord
+            {
+                Id = 1,
+                FileName = "test.pdf",
+                FileText = "hello file text"
+            });
+
+        var vModel = new AiPageViewModel
+        {
+            SelectedQueryType = AiQueryType.Summarize
+        };
+
+        // Act
+        var result = await _aiController.Index(1, vModel);
+
+        // Assert
+        var view = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<AiPageViewModel>(view.Model);
+
+        Assert.NotNull(model.QueryTypes);
+        Assert.Equal(expected_qType, model.SelectedQueryType.ToString());
+    }
+
+    [Fact]
+    public async Task AIController_GetIndex_FileServiceReturnFile_ReturnsView_WithQueryTypeEL15()
+    {
+        // Arrange 
+        var expected_qType = AiQueryType.ELI5;
+        _fileIntakeServiceMock
+            .Setup(s =>s.GetFileByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new FileRecord
+            {
+                Id = 1,
+                FileName = "test.pdf",
+                FileText = "hello file text"
+            });
+
+        var vModel = new AiPageViewModel
+        {
+            SelectedQueryType = AiQueryType.ELI5
+        };
+
+        // Act
+        var result = await _aiController.Index(1, vModel);
+
+        // Assert
+        var view = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<AiPageViewModel>(view.Model);
+
+        Assert.NotNull(model.QueryTypes);
+        Assert.Equal(expected_qType,  model.SelectedQueryType);
+    }
+
+    [Fact]
+    public async Task AIController_GetIndex_FileServiceReturnFile_ReturnsView_WithQueryTypePointForm()
+    {
+        // Arrange 
+        var expected_qType = "PointForm";
+        _fileIntakeServiceMock
+            .Setup(s =>s.GetFileByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new FileRecord
+            {
+                Id = 1,
+                FileName = "test.pdf",
+                FileText = "hello file text"
+            });
+
+        var vModel = new AiPageViewModel
+        {
+            SelectedQueryType = AiQueryType.PointForm
+        };
+
+        // Act
+        var result = await _aiController.Index(1, vModel);
+
+        // Assert
+        var view = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<AiPageViewModel>(view.Model);
+
+        Assert.NotNull(model.QueryTypes);
+        Assert.Equal(expected_qType, model.SelectedQueryType.ToString());
     }
 }
