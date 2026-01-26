@@ -11,7 +11,7 @@ namespace FileIntake.Tests;
 public class AiProcessingServiceTests
 {
     [Fact]
-    public async Task AiProcessingService_AiProcessAsync_PostRequestHappyPath()
+    public async Task AiProcessingService_AiProcessAsync_PostRequest_ValidRequest_Summarize()
     {
         // Arrange
         var responseJson = "{\"summary\":\"hello from ai\"}";
@@ -49,6 +49,62 @@ public class AiProcessingServiceTests
     }
 
     [Fact]
+    public async Task AiProcessingService_AiProcessAsync_PostRequest_Eli5()
+    {
+        // Arrange
+        var responseJson = "{\"summary\":\"hello from ai\"}";
+        var expectedPrompt = AiQueryType.ELI5.GetPrompt();
+
+        var httpClient = HttpClientMockFactory.Create(
+            statusCode: HttpStatusCode.OK,
+            responseBody: responseJson,
+              assertRequest: async request =>
+            {
+                Assert.Equal(HttpMethod.Post, request.Method);
+                Assert.Equal("http://localhost:8000/eli5", request.RequestUri!.ToString());
+            });
+
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});     
+        var service = new AiProcessingService(httpClient, options);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", AiQueryType.ELI5);
+
+        // Assert
+        Assert.True(result.success);
+        Assert.Equal("hello from ai", result.aiResponse);
+        Assert.True(string.IsNullOrWhiteSpace(result.ErrorMessage));
+    }
+
+    [Fact]
+    public async Task AiProcessingService_AiProcessAsync_PostRequest_PointForm()
+    {
+        // Arrange
+        var responseJson = "{\"summary\":\"hello from ai\"}";
+        var expectedPrompt = AiQueryType.PointForm.GetPrompt();
+
+        var httpClient = HttpClientMockFactory.Create(
+            statusCode: HttpStatusCode.OK,
+            responseBody: responseJson,
+              assertRequest: async request =>
+            {
+                Assert.Equal(HttpMethod.Post, request.Method);
+                Assert.Equal("http://localhost:8000/pointform", request.RequestUri!.ToString());
+            });
+
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});     
+        var service = new AiProcessingService(httpClient, options);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", AiQueryType.PointForm);
+
+        // Assert
+        Assert.True(result.success);
+        Assert.Equal("hello from ai", result.aiResponse);
+        Assert.True(string.IsNullOrWhiteSpace(result.ErrorMessage));
+    }
+
+    [Fact]
     public async Task AiProcessingService_AiProcessAsync_EmptyText_ReturnsFailure_DoesNotCallHTTP()
     {
         // Arrange
@@ -66,6 +122,30 @@ public class AiProcessingServiceTests
         Assert.False(result.success, result.ErrorMessage);
         Assert.False(string.IsNullOrWhiteSpace(result.ErrorMessage));
         Assert.Equal("Invalid or empty prompt, please enter another", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task AiProcessingService_AiProcessAsync_EmptyBaseUrl_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var httpClient = new HttpClient();
+        var options = Options.Create(new AiServiceOptions { BaseUrl = ""}); 
+        
+        // Act Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => new AiProcessingService(httpClient, options));
+        Assert.Contains("AiProcessingService: BaseUrl is not configured", ex.Message);
+    }
+
+    [Fact]
+    public async Task AiProcessingService_AiProcessAsync_NullBaseUrl_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var httpClient = new HttpClient();
+        var options = Options.Create(new AiServiceOptions { BaseUrl = null!}); 
+        
+        // Act Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => new AiProcessingService(httpClient, options));
+        Assert.Contains("AiProcessingService: BaseUrl is not configured", ex.Message);
     }
 
     [Fact]
@@ -247,5 +327,21 @@ public class AiProcessingServiceTests
         Assert.False(result.success, result.ErrorMessage);
         Assert.Contains("Connecting to ai service failed System.Net.Http.HttpRequestException: Blow Up", result.ErrorMessage);
         Assert.False(result.IsResponseUpdated);
+    }
+
+    [Fact]
+    public async Task AiProcessingService_AiProcessAsync_PostAsyncCatch_Exception_Failure()
+    {
+        // Arrange
+        var httpClient = HttpClientMockFactory.CreateThrowing(new HttpRequestException("Blow Up"));
+        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
+        var service = new AiProcessingService(httpClient, options);
+
+        // Act
+        var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
+
+        // Assert
+        Assert.False(result.success, result.ErrorMessage);
+        Assert.Contains("Connecting to ai service failed", result.ErrorMessage);
     }
 }
