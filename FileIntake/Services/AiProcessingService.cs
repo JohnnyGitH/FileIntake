@@ -7,6 +7,7 @@ using FileIntake.Interfaces;
 using FileIntake.Models.Configuration;
 using FileIntake.Models.DTO;
 using FileIntake.Models.Enums;
+using FileIntake.Models.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -14,8 +15,6 @@ namespace FileIntake.Services;
 
 public class AiProcessingService : IAiProcessingService
 {
-    private const string Summarize_Endpoint = "/summarize";
-
     private readonly HttpClient _httpClient;
 
     public AiProcessingService(HttpClient httpClient, IOptions<AiServiceOptions> options)
@@ -50,7 +49,7 @@ public class AiProcessingService : IAiProcessingService
             };
         }
 
-        var finalizedPrompt = $"{query}\n\n{text}";
+        var finalizedPrompt = $"{query.GetPrompt()}\n\n{text}";
 
         var requestDto = new AiRequestDto
         {
@@ -63,7 +62,7 @@ public class AiProcessingService : IAiProcessingService
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             var jsonContent = JsonSerializer.Serialize(requestDto, options);
             var request = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync(Summarize_Endpoint, request);
+            var response = await _httpClient.PostAsync(GetEndpointFromQuery(query), request);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -102,5 +101,17 @@ public class AiProcessingService : IAiProcessingService
                 ErrorMessage = "Connecting to ai service failed " + ex,
             };
         }
+    }
+
+    private string GetEndpointFromQuery(AiQueryType queryType)
+    {
+        return queryType switch
+        {
+            AiQueryType.Summarize => "/summarize",
+            AiQueryType.ELI5 => "/eli5",
+            AiQueryType.PointForm => "/pointform",
+            _ => throw new ArgumentOutOfRangeException( nameof(queryType), queryType, 
+            "Unhandled AiQueryType. Value is invalid or needs to be mapped")
+        };
     }
 }
