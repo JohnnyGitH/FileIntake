@@ -109,9 +109,7 @@ public class AiProcessingService : IAiProcessingService
         {
             AiQueryType.Summarize => "/summarize",
             AiQueryType.ELI5 => "/eli5",
-            AiQueryType.PointForm => "/pointform",
-            _ => throw new ArgumentOutOfRangeException( nameof(queryType), queryType, 
-            "Unhandled AiQueryType. Value is invalid or needs to be mapped")
+            AiQueryType.PointForm => "/pointform"
         };
     }
 }
