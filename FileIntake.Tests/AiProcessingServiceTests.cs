@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using FileIntake.Models.Configuration;
 using FileIntake.Models.Enums;
+using FileIntake.Models.Extensions;
 using FileIntake.Services;
 using Microsoft.Extensions.Options;
 
@@ -14,23 +15,24 @@ public class AiProcessingServiceTests
     {
         // Arrange
         var responseJson = "{\"summary\":\"hello from ai\"}";
+        var expectedPrompt = AiQueryType.Summarize.GetPrompt();
 
         var httpClient = HttpClientMockFactory.Create(
             statusCode: HttpStatusCode.OK,
             responseBody: responseJson,
-            assertRequest: request =>
+            assertRequest: async request =>
             {
                 Assert.Equal(HttpMethod.Post, request.Method);
                 Assert.Equal("http://localhost:8000/summarize", request.RequestUri!.ToString());
                 
-                var body = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+                var body = request.Content!.ReadAsStringAsync().Result;
                 using var doc = JsonDocument.Parse(body);
 
                 Assert.True(doc.RootElement.TryGetProperty("text",out var textProp));
                 var sentText = textProp.GetString();
 
                 Assert.NotNull(sentText);
-                Assert.Contains("Summarize", sentText!);
+                Assert.Contains(expectedPrompt.Trim(), sentText!);
                 Assert.Contains("my pdf text", sentText!);
             });
 
@@ -41,7 +43,7 @@ public class AiProcessingServiceTests
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
 
         // Assert
-        Assert.True(result.success, result.ErrorMessage);
+        Assert.True(result.success);
         Assert.Equal("hello from ai", result.aiResponse);
         Assert.True(string.IsNullOrWhiteSpace(result.ErrorMessage));
     }
