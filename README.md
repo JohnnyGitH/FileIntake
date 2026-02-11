@@ -7,8 +7,16 @@
 It includes user authentication via ASP.NET Core Identity and is built using Entity Framework Core with SQL Server for data persistence.
 
 ---
+## 🌟 Highlights:
 
-## 🚀 Features
+- ☁️ Serverless production deployment on Google Cloud Run
+- 🔄 Fully automated CI/CD with UAT → E2E → Production gating
+- 🔐 Secure OIDC-based authentication (no service account keys)
+- 🧪 95%+ unit test coverage + Playwright E2E validation
+
+---
+
+## 🚀 Application Features
 
 - 🔐 **User Authentication** — Login and registration powered by ASP.NET Core Identity  
 - 📤 **File Uploads** — Upload and manage PDF files  
@@ -29,15 +37,15 @@ It includes user authentication via ASP.NET Core Identity and is built using Ent
 | **Authentication** | ASP.NET Core Identity |
 | **Frontend** | Razor Pages + Bootstrap |
 | **Containerization** | Docker & Docker Compose |
+| **Cloud Platform** | Google Cloud Run |
+| **Container Registry** | Google Artifact Registry |
+| **CI/CD** | GitHub Actions |
+| **E2E Testing** | NUnit + Microsoft Playwright |
+| **Coverage Reporting** | Codecov |
+| **Infrastructure Security** | Workload Identity Federation (OIDC) |
 | **IDE** | Visual Studio Code |
 
 ---
-
-## 🤝 Companion Project — AI Microservice
-
-This project pairs with the **FileIntake-AIMicroservice-Python** service:
-
-🔗 **Repository:** https://github.com/JohnnyGitH/FileIntake-AIMicroservice-Python
 
 ### What it does
 
@@ -49,32 +57,86 @@ This separation keeps the ASP.NET app clean while isolating heavy AI processing 
 
 ---
 
-## 📦 Running With Docker
+## 🐍  AI Microservice -FastAPI (Python)
 
-FileIntake is fully containerized — both the web app and SQL Server run inside Docker.
+This project pairs with the **FileIntake-AIMicroservice-Python** service:
+
+🔗 **Repository:** https://github.com/JohnnyGitH/FileIntake-AIMicroservice-Python
+
+## 🎭 End-to-End Testing (Playwright)
+
+FileIntake includes a dedicated **E2E testing suite** built with:
+
+- 🧪 **NUnit**
+- 🎭 **Microsoft Playwright**
+- 🌐 Real browser automation against UAT
+
+The E2E tests validate:
+
+- Application availability
+- Page load success
+- Authentication redirects
+- Critical UI elements
+- Environment configuration
+
+These tests execute against the **UAT Cloud Run environment** before production deployment.
+
+This ensures production only deploys after full-stack validation passes.
 
 
-## 🚀 CI/CD & Deployment
 
-This service is fully automated using GitHub Actions and Google Cloud:
+## ☁️ Cloud Architecture
 
-- **CI**:  
-  - Runs on every pull request  
-  - Executes unit tests with coverage  
-  - Coverage reported to Codecov  
+FileIntake runs fully serverless on **Google Cloud Platform**:
 
-- **CD**:  
-  - Triggered on merge to `master`  
-  - Builds a Docker image  
-  - Pushes to Google Artifact Registry  
-  - Deploys to Google Cloud Run  
+- 🐳 **Google Cloud Run** (Web App + AI Microservice)
+- 📦 **Google Artifact Registry** (container storage)
+- 🔐 **Workload Identity Federation (OIDC)** for secure CI authentication
+- 🧹 **Artifact cleanup policies** to reduce registry bloat
+- ⚙️ Environment-based configuration
 
-- **Security**:  
-  - Uses **Workload Identity Federation (OIDC)**  
-  - No long-lived service account keys  
-  - Least-privilege IAM permissions  
+### Benefits
 
-This pipeline ensures all changes are tested, reviewed, and safely deployed to production.
+- No long-lived service account keys
+- Minimal infrastructure management
+- Secure CI/CD authentication
+- Scalable containerized architecture
+
+
+## 🔐 Security Considerations
+
+Security was treated as a first-class concern:
+
+- No secrets committed to source control
+- `.env` files ignored
+- GitHub Secrets used for sensitive pipeline values
+- Workload Identity Federation replaces static credentials
+- Separate UAT and Production services
+- Artifact retention policies configured
+- Branch protection rules enabled
+
+
+## 🚀 CI/CD & Deployment (Updated)
+
+This service is fully automated using GitHub Actions and Google Cloud.
+
+### Continuous Integration (CI)
+
+- Runs on every pull request
+- Executes unit tests
+- Publishes coverage reports
+- Enforces branch protection rules
+
+### Continuous Deployment (CD)
+
+- Triggered on merge to `master`
+- Builds Docker image
+- Pushes to Google Artifact Registry
+- Deploys to **UAT Cloud Run service**
+- Executes E2E tests against UAT
+- Deploys to **Production** only if E2E passes
+
+This ensures production deployments are fully validated.
 
 ## 🧱 Architecture
 
@@ -101,7 +163,7 @@ graph LR
     B -->|SDK / API| D[Gemini]
 ```
 
-## 🛠️ Development Setup
+## 🛠️ Local Development
 
 ### 1️⃣ Clone the Repository
 
@@ -112,7 +174,9 @@ cd FileIntake
 
 ---
 
-## 🐳 Running via Docker Compose
+### 🐳 Running Locally with Docker Compose
+
+FileIntake is fully containerized — both the web app and SQL Server run inside Docker.
 
 ### 2️⃣ Start the containers
 
@@ -159,26 +223,37 @@ docker exec -it fileintake-sql bash
 
 ---
 
-## 🏗️ How the App Works in Docker
-
-- ASP.NET web app mounts a `/keys` folder for Data Protection keys  
-- SQL Server stores Identity + File metadata  
-- DbInitializer seeds:
-  - Test users (`johnny@example.com`, `test@example.com`)
-  - Demo user profiles
-  - Sample files  
-- Hashing + Identity cookie keys stay consistent thanks to key persistence
-
----
-
 ## 🔮 Future Enhancements
 
-- UI for processed AI results  
-- File tagging + classification  
-- More Identity features (2FA, roles, admin dashboard)  
-- CI/CD using GitHub Actions  
-- Dockerized microservice coordination for production  
-- Additional microservices for more functionality
+The following improvements are planned as the platform evolves:
 
+### ⚡ Performance & Scalability
+- Redis caching for AI results (checksum-based caching)
+- Rate limiting and throttling via Redis
+- Background job processing with Hangfire
+- Horizontal scaling strategy improvements
 
+### 🧩 Architecture Evolution
+- Event-driven messaging with RabbitMQ
+- Dedicated file comparison microservice
+- Distributed tracing and structured logging
+- Observability and metrics (OpenTelemetry)
+
+### 🔐 Security & Identity
+- Two-Factor Authentication (2FA)
+- Role-based authorization (Admin / User roles)
+- Account lockout & advanced identity policies
+- Secure file validation and content scanning
+
+### 📊 Feature Expansion
+- Persistent UI display for processed AI results
+- File tagging and classification workflows
+- Document checksum comparison
+- Search and filtering for processed files
+
+### 🧪 Testing & DevOps
+- Expanded Playwright E2E coverage
+- Contract testing between services
+- Canary deployments for production
+- Automated rollback strategy
 
