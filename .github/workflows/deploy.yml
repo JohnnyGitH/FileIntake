@@ -1,4 +1,4 @@
-name: 🚀 Deploy to Cloud Run
+name: 🚀 Deploy to Cloud Run (UAT -> E2E -> PROD)
 
 on:
  push:
@@ -16,6 +16,10 @@ jobs:
      REGION: ${{ vars.GCP_REGION }}
      AR_REPO: ${{ vars.GCP_AR_REPO }}
      SERVICE_NAME: ${{ vars.GCP_SERVICE_NAME }}
+     SERVICE_NAME_UAT: ${{ vars.GCP_FILEINTAKE_UAT }}
+
+    outputs:
+      image_digest_ref: ${{ steps.digest.outputs.image_digest_ref }} # New
 
     steps:
      - name: 📥 Checkout
@@ -44,10 +48,93 @@ jobs:
           docker push "$IMAGE"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
-     - name: 🚀 Deploy to Cloud Run
+     - name: 🔒 Resolve image digest (immutable) # New
+       id: digest
        run: |
-          gcloud run deploy "$SERVICE_NAME" \
-          --image "$IMAGE" \
+          DIGEST="$(gcloud artifacts docker images describe "$IMAGE" --format='get(image_summary.digest)')"
+          IMAGE_DIGEST_REF="${IMAGE%@*}@${DIGEST}"
+          echo "image_digest_ref=$IMAGE_DIGEST_REF" >> "$GITHUB_OUTPUT"
+          echo "IMAGE_DIGEST_REF=$IMAGE_DIGEST_REF" >> "$GITHUB_ENV"
+
+     - name: 🚀 Deploy to UAT # New steps
+       run: |
+          gcloud run deploy "$SERVICE_NAME_UAT" \ 
+          --image "$IMAGE_DIGEST_REF" \
           --region "$REGION" \
           --platform managed \
           --allow-unauthenticated
+
+# New End 2 End testing
+
+  e2e_uat:
+    runs-on: ubuntu_latest
+    needs: build_and_deploy_uat
+
+    env: 
+      BASE_URL: ${{ secrets.FILEINTAKE_UAT_BASE_URL }}
+
+    steps:
+      - name: 📥 Checkout E2E repo (public)
+        uses: actions/checkout@v4
+        with:
+          repository: JohnnyGitH/FileIntake-E2E
+          path: e2e
+        
+      - name: 🟢 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: 📦 Install deps
+        working-directory: e2e
+        run: npm ci
+
+      - name: 🎭 Install Playwright browsers
+        working-directory: e2e
+        run: npx playwright install --with-deps
+
+      - name: ✅ Run E2E against UAT
+        working-directory: e2e
+        run: npx playwright test
+        env:
+          BASE_URL: ${{ secrets.FILEINTAKE_UAT_BASE_URL }} # ??
+
+# Deploy to Prod
+
+  deploy_prod:
+    runs-on: ubuntu_latest
+    needs: [build_and_deploy_uat, e2e_uat]
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      REGION: ${{ vars.GCP_REGION }}
+      SERVICE_PROD: fileIntake #Is this the service name in GCP?
+      IMAGE_DIGEST_REF: ${{ needs.buid_and_deploy_uat.outputs.image_digest_ref }}
+
+    steps:
+      - name: 🔐 Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+      - name: ☁️ Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Set gcloud project
+        run: gcloud config set project "$PROJECT_ID"
+
+      - name: 🚀 Promote to PROD (same image digest)
+        run: |
+          gcloud run deploy "$SERVICE_PROD" \
+            --image "$IMAGE_DIGEST_REF" \
+            --region "$REGION" \
+            --platform managed \
+            --allow-unauthenticated
+
+  
+          
+        
