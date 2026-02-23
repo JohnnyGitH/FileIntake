@@ -95,7 +95,7 @@ jobs:
 
       - name: 🎭 Install Playwright browsers
         working-directory: e2e/FileIntake.E2E
-        run: pwsh test ./bin/Release/net8.0/playwright.ps1 install --with-deps
+        run: pwsh ./bin/Release/net8.0/playwright.ps1 install --with-deps
 
       - name: ✅ Run E2E (UAT)
         working-directory: e2e/FileIntake.E2E
