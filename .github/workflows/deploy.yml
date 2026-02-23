@@ -5,7 +5,7 @@ on:
     branches: ["master"]
 
 jobs:
- deploy:
+ build_and_deploy_uat:
     runs-on: ubuntu-latest
     permissions:
         contents: read
@@ -59,7 +59,7 @@ jobs:
 
      - name: 🚀 Deploy to UAT # New steps
        run: |
-          gcloud run deploy "$SERVICE_NAME_UAT" \ 
+          gcloud run deploy "$SERVICE_NAME_UAT" \
           --image "$IMAGE_DIGEST_REF" \
           --region "$REGION" \
           --platform managed \
