@@ -53,7 +53,8 @@ jobs:
        id: digest
        run: |
           DIGEST="$(gcloud artifacts docker images describe "$IMAGE" --format='get(image_summary.digest)')"
-          IMAGE_DIGEST_REF="${IMAGE%@*}@${DIGEST}"
+          IMAGE_BASE="${IMAGE%%:*}"
+          IMAGE_DIGEST_REF="${IMAGE_BASE}@${DIGEST}"
           echo "image_digest_ref=$IMAGE_DIGEST_REF" >> "$GITHUB_OUTPUT"
           echo "IMAGE_DIGEST_REF=$IMAGE_DIGEST_REF" >> "$GITHUB_ENV"
 
@@ -79,24 +80,26 @@ jobs:
           repository: JohnnyGitH/FileIntake-E2E
           path: e2e
         
-      - name: 🟢 Setup Node
-        uses: actions/setup-node@v4
+      - name: 🟢 Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
-          node-version: 20
+          dotnet-version: "8.0.x"
       
-      - name: 📦 Install deps
+      - name: 📦 Restore
         working-directory: e2e
-        run: npm ci
+        run: dotnet restore ./FileIntake.E2E/FileIntake.E2E.csproj
+
+      - name: 🏗️ Build
+        working-directory: e2e
+        run: dotnet build ./FileIntake.E2E/FileIntake.E2E.csproj -c Release --no-restore
 
       - name: 🎭 Install Playwright browsers
-        working-directory: e2e
-        run: npx playwright install --with-deps
+        working-directory: e2e/FileIntake.E2E
+        run: pwsh test ./bin/Release/net8.0/playwright.ps1 install --with-deps
 
-      - name: ✅ Run E2E against UAT
-        working-directory: e2e
-        run: npx playwright test
-        env:
-          BASE_URL: ${{ secrets.FILEINTAKE_UAT_BASE_URL }} # ??
+      - name: ✅ Run E2E (UAT)
+        working-directory: e2e/FileIntake.E2E
+        run: dotnet test ./FileIntake.E2E.csproj -c Release --no-build --verbosity normal
 
  deploy_prod:
     runs-on: ubuntu-latest
@@ -109,7 +112,7 @@ jobs:
       PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
       REGION: ${{ vars.GCP_REGION }}
       SERVICE_PROD: ${{ vars.GCP_SERVICE_NAME }}
-      IMAGE_DIGEST_REF: ${{ needs.buid_and_deploy_uat.outputs.image_digest_ref }}
+      IMAGE_DIGEST_REF: ${{ needs.build_and_deploy_uat.outputs.image_digest_ref }}
 
     steps:
       - name: 🔐 Authenticate to Google Cloud (WIF)
