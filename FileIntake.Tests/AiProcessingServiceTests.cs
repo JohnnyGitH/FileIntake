@@ -36,8 +36,8 @@ public class AiProcessingServiceTests
                 Assert.Contains("my pdf text", sentText!);
             });
 
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});     
-        var service = new AiProcessingService(httpClient, options);
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
@@ -62,10 +62,10 @@ public class AiProcessingServiceTests
             {
                 Assert.Equal(HttpMethod.Post, request.Method);
                 Assert.Equal("http://localhost:8000/eli5", request.RequestUri!.ToString());
-            });
+            }); 
 
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});     
-        var service = new AiProcessingService(httpClient, options);
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.ELI5);
@@ -92,8 +92,8 @@ public class AiProcessingServiceTests
                 Assert.Equal("http://localhost:8000/pointform", request.RequestUri!.ToString());
             });
 
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});     
-        var service = new AiProcessingService(httpClient, options);
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.PointForm);
@@ -112,8 +112,8 @@ public class AiProcessingServiceTests
             new Exception("HTTP should not be called for invalid input")
         );
         
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
-        var service = new AiProcessingService(httpClient, options);
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("", AiQueryType.Summarize);
@@ -125,27 +125,26 @@ public class AiProcessingServiceTests
     }
 
     [Fact]
-    public async Task AiProcessingService_AiProcessAsync_EmptyBaseUrl_ThrowsInvalidOperationException()
+    public async Task AiProcessingService_AiProcessAsync_EmptyBaseAddress_ThrowsInvalidOperationException()
     {
         // Arrange
         var httpClient = new HttpClient();
         var options = Options.Create(new AiServiceOptions { BaseUrl = ""}); 
         
         // Act Assert
-        var ex = Assert.Throws<InvalidOperationException>(() => new AiProcessingService(httpClient, options));
-        Assert.Contains("AiProcessingService: BaseUrl is not configured", ex.Message);
+        var ex = Assert.Throws<InvalidOperationException>(() => new AiProcessingService(httpClient));
+        Assert.Contains("AiProcessingService: HttpClient BaseAddress is not configured", ex.Message);
     }
 
     [Fact]
-    public async Task AiProcessingService_AiProcessAsync_NullBaseUrl_ThrowsInvalidOperationException()
+    public async Task AiProcessingService_AiProcessAsync_NullBaseAddress_ThrowsInvalidOperationException()
     {
         // Arrange
         var httpClient = new HttpClient();
-        var options = Options.Create(new AiServiceOptions { BaseUrl = null!}); 
         
         // Act Assert
-        var ex = Assert.Throws<InvalidOperationException>(() => new AiProcessingService(httpClient, options));
-        Assert.Contains("AiProcessingService: BaseUrl is not configured", ex.Message);
+        var ex = Assert.Throws<InvalidOperationException>(() => new AiProcessingService(httpClient));
+        Assert.Contains("AiProcessingService: HttpClient BaseAddress is not configured", ex.Message);
     }
 
     [Fact]
@@ -156,8 +155,8 @@ public class AiProcessingServiceTests
             new Exception("HTTP should not be called for invalid input")
         );
         
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
-        var service = new AiProcessingService(httpClient, options);
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync(null!, AiQueryType.Summarize);
@@ -175,9 +174,9 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.CreateThrowing(
             new Exception("HTTP should not be called for invalid input")
         );
-        
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
-        var service = new AiProcessingService(httpClient, options);
+
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", (AiQueryType)999);
@@ -200,8 +199,8 @@ public class AiProcessingServiceTests
             statusCode: inputStatusCode,
             responseBody: responseJson);
         
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
-        var service = new AiProcessingService(httpClient, options);
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
@@ -221,8 +220,8 @@ public class AiProcessingServiceTests
             statusCode: HttpStatusCode.OK,
             responseBody: responseJson);
         
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});
-        var service = new AiProcessingService(httpClient, options);
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
@@ -241,8 +240,9 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.Create(
             statusCode: HttpStatusCode.OK,
             responseBody: responseJson);
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});
-        var service = new AiProcessingService(httpClient, options);
+
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
@@ -261,9 +261,9 @@ public class AiProcessingServiceTests
         var httpClient = HttpClientMockFactory.Create(
             statusCode: HttpStatusCode.OK,
             responseBody: responseJson);
-
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});   
-        var service = new AiProcessingService(httpClient, options);
+  
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
@@ -283,8 +283,8 @@ public class AiProcessingServiceTests
             statusCode: HttpStatusCode.OK,
             responseBody: responseJson);
         
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"});   
-        var service = new AiProcessingService(httpClient, options);
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
@@ -299,9 +299,9 @@ public class AiProcessingServiceTests
     {
         // Arrange
         var httpClient = HttpClientMockFactory.CreateThrowing(new TaskCanceledException("Request timed out"));
-        
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
-        var service = new AiProcessingService(httpClient, options);
+
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
@@ -316,9 +316,8 @@ public class AiProcessingServiceTests
     {
         // Arrange
         var httpClient = HttpClientMockFactory.CreateThrowing(new HttpRequestException("Blow Up"));
-        
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
-        var service = new AiProcessingService(httpClient, options);
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
@@ -334,8 +333,9 @@ public class AiProcessingServiceTests
     {
         // Arrange
         var httpClient = HttpClientMockFactory.CreateThrowing(new HttpRequestException("Blow Up"));
-        var options = Options.Create(new AiServiceOptions { BaseUrl = "http://localhost:8000"}); 
-        var service = new AiProcessingService(httpClient, options);
+
+        httpClient.BaseAddress = new Uri("http://localhost:8000"); 
+        var service = new AiProcessingService(httpClient);
 
         // Act
         var result = await service.AiProcessAsync("my pdf text", AiQueryType.Summarize);
