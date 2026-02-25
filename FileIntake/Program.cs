@@ -161,6 +161,8 @@ public class Program
         app.Run();
     }
 
+    // Retries transient failures (5xx, 408, network errors, 429) 
+    // using exponential backoff to handle temporary downstream instability.
     static IAsyncPolicy<HttpResponseMessage> GetAiRetryPolicy()
     {
         return HttpPolicyExtensions
@@ -172,6 +174,8 @@ public class Program
             );
     }
 
+    // Opens the circuit after repeated transient failures to prevent
+    // hammering an unhealthy AI service and allows it time to recover.
     static IAsyncPolicy<HttpResponseMessage> GetAiCircuitBreakerPolicy()
     {
         return HttpPolicyExtensions
