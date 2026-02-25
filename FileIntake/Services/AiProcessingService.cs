@@ -4,11 +4,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FileIntake.Interfaces;
-using FileIntake.Models.Configuration;
 using FileIntake.Models.DTO;
 using FileIntake.Models.Enums;
 using FileIntake.Models.Extensions;
-using Microsoft.Extensions.Options;
 
 namespace FileIntake.Services;
 
@@ -16,9 +14,13 @@ public class AiProcessingService : IAiProcessingService
 {
     private readonly HttpClient _httpClient;
 
-    public AiProcessingService(HttpClient httpClient, IOptions<AiServiceOptions> options)
+    public AiProcessingService(HttpClient httpClient)
     {
         _httpClient = httpClient;
+        if (_httpClient.BaseAddress is null)
+        {
+            throw new InvalidOperationException("AiProcessingService: HttpClient BaseAddress is not configured");
+        }
     }
 
     public async Task<AiProcessingResult> AiProcessAsync(string text, AiQueryType query)
