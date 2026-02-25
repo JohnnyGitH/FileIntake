@@ -9,7 +9,6 @@ using FileIntake.Models.DTO;
 using FileIntake.Models.Enums;
 using FileIntake.Models.Extensions;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace FileIntake.Services;
 
@@ -20,18 +19,12 @@ public class AiProcessingService : IAiProcessingService
     public AiProcessingService(HttpClient httpClient, IOptions<AiServiceOptions> options)
     {
         _httpClient = httpClient;
-        var baseUrl = options.Value.BaseUrl?.TrimEnd('/');
-        if (string.IsNullOrEmpty(baseUrl))
-        {
-            throw new InvalidOperationException("AiProcessingService: BaseUrl is not configured");
-        }
-        _httpClient.BaseAddress = new Uri(baseUrl!);
     }
 
     public async Task<AiProcessingResult> AiProcessAsync(string text, AiQueryType query)
     {
         Console.WriteLine("Inside AiProcessingService AiProcessAsync method");
-        if(text == null || text.IsNullOrEmpty())
+        if(string.IsNullOrWhiteSpace(text))
         {
             return new AiProcessingResult
             {

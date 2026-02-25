@@ -13,6 +13,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.DataProtection;
 using System.IO;
 using FileIntake.Models.Configuration;
+using Microsoft.Extensions.Options;
+using Polly;
+using System.Net.Http;
+using Polly.Extensions.Http;
 
 namespace FileIntake;
 
@@ -48,10 +52,22 @@ public class Program
 
         builder.Services.AddScoped<IFileIntakeService, FileIntakeService>();
         builder.Services.AddScoped<IFileProcessingService, FileProcessingService>();
-        builder.Services.AddHttpClient<IAiProcessingService, AiProcessingService>(client =>
+        builder.Services.AddHttpClient<IAiProcessingService, AiProcessingService>((sp,client) =>
         {
+            var options = sp.GetRequiredService<IOptions<AiServiceOptions>>().Value;
+
+            var baseUrl = options.BaseUrl?.TrimEnd('/');
+            if(string.IsNullOrWhiteSpace(baseUrl))
+            {
+                throw new InvalidOperationException("AiService: BaseUrl is not configured");
+            }
+
+            client.BaseAddress = new Uri(baseUrl);
             client.Timeout = TimeSpan.FromSeconds(30);
-        });
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json");})
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5))
+                .AddPolicyHandler(GetAiRetryPolicy()) // Retry transient failures (5xx, 408, network errors, 429)
+                .AddPolicyHandler(GetAiCircuitBreakerPolicy()); // Stop when there is a failing downstream
 
         builder.Services.AddControllersWithViews();
 
@@ -143,6 +159,28 @@ public class Program
         }
 
         app.Run();
+    }
+
+    static IAsyncPolicy<HttpResponseMessage> GetAiRetryPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .OrResult(r => (int)r.StatusCode == 429)
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2,attempt))
+            );
+    }
+
+    static IAsyncPolicy<HttpResponseMessage> GetAiCircuitBreakerPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .OrResult(r => (int)r.StatusCode == 429)
+            .CircuitBreakerAsync(
+                handledEventsAllowedBeforeBreaking: 5,
+                durationOfBreak: TimeSpan.FromSeconds(30)
+            );
     }
 }
 
