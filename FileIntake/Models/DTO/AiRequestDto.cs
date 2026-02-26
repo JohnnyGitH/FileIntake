@@ -2,8 +2,8 @@ using System.Text.Json.Serialization;
 
 namespace FileIntake.Models.DTO;
 
-public class AiRequestDto
+public sealed record AiRequestDto
 {
     [JsonPropertyName("text")]
-    public string Text { get; set;} = string.Empty;
+    public string Text { get; init;} = string.Empty;
 }

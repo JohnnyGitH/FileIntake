@@ -2,8 +2,8 @@ using System.Text.Json.Serialization;
 
 namespace FileIntake.Models.DTO;
 
-public class AiResponseDto
+public sealed record AiResponseDto
 {
     [JsonPropertyName("summary")]
-    public string Summary { get; set; } = string.Empty;
+    public string Summary { get; init; } = string.Empty;
 }
